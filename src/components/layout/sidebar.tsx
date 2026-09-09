@@ -14,9 +14,12 @@ function readCollapsed(): boolean {
   }
 }
 
+// WarehouseInventory and StockTransfer are managed from inside a specific warehouse
+// (WarehouseDetailPage), not as their own top-level list — so they're deliberately
+// left out of the nav here even though their schemas still exist.
 const GROUPS = [
   { label: "Catalog", schemas: ["Product", "Category", "Brand"] },
-  { label: "Inventory", schemas: ["Warehouse", "WarehouseInventory", "InventoryReservation", "InventoryMovement", "StockTransfer"] },
+  { label: "Inventory", schemas: ["Warehouse", "InventoryReservation", "InventoryMovement"] },
   { label: "Procurement", schemas: ["Supplier", "PurchaseOrder"] },
 ];
 
