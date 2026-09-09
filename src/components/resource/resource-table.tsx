@@ -11,21 +11,21 @@ function displayColumns(meta: EntityMeta, hiddenFields: string[]) {
   return meta.fields.filter((f) => !isComplexField(f) && !f.isArray && !hiddenFields.includes(f.name)).slice(0, 5);
 }
 
-const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function Cell({ field, value }: { field: { name: string; type: string }; value: unknown }) {
+function Cell({ field, value, unresolvedId }: { field: { name: string; type: string }; value: unknown; unresolvedId?: boolean }) {
   if (value == null || value === "") return <span className="text-muted">—</span>;
   if (field.name === "Status" && typeof value === "string") return <StatusBadge status={value} />;
   if (field.type === "Boolean") return <span>{value ? "Yes" : "No"}</span>;
   if (field.type === "DateTime" && typeof value === "string") return <DateDisplay value={value} />;
-  // A raw id with nothing to resolve it against (no matching entity, e.g.
-  // InventoryReservation.CustomerId — not a reference to anything in this data model):
-  // shorten it and keep the full value one hover/tap away instead of showing 36
-  // characters of GUID as if it were meaningful text.
-  if (typeof value === "string" && UUID_PATTERN.test(value)) {
+  // An id-shaped field with nothing to resolve it against (no matching entity in this data
+  // model, e.g. InventoryReservation.CustomerId): display it as a code — consistently,
+  // whether the underlying value happens to be a raw GUID or a readable code like
+  // "CUSTOMER-DEMO-001" — rather than one looking like plain prose and the other like a
+  // stray hash. Only very long values (GUIDs) truncate; the full value is one hover/tap away.
+  if (unresolvedId && typeof value === "string") {
+    const isLong = value.length > 24;
     return (
-      <span className="font-mono text-xs text-muted" title={value}>
-        {value.slice(0, 8)}…
+      <span className="font-mono text-xs text-steel" title={value}>
+        {isLong ? `${value.slice(0, 20)}…` : value}
       </span>
     );
   }
@@ -69,10 +69,12 @@ export function ResourceTable({ meta, items, onEdit, onDelete, referenceLabels, 
                 {columns.map((c) => {
                   const raw = item[c.name];
                   const labels = referenceLabels?.[c.name];
-                  const resolved = labels && typeof raw === "string" && labels[raw] ? labels[raw] : raw;
+                  const hasLabel = Boolean(labels && typeof raw === "string" && labels[raw]);
+                  const resolved = hasLabel ? labels![raw as string] : raw;
+                  const unresolvedId = !hasLabel && /Id$/.test(c.name) && typeof raw === "string";
                   return (
                     <td key={c.name} className="whitespace-nowrap px-4 py-2.5 text-ink">
-                      <Cell field={c} value={resolved} />
+                      <Cell field={c} value={resolved} unresolvedId={unresolvedId} />
                     </td>
                   );
                 })}
