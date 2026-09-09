@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { ImageWithFallback } from "@/components/ui/image-with-fallback";
 import { Spinner } from "@/components/ui/spinner";
 import { StorefrontHeader } from "@/components/storefront/storefront-header";
+import { useTheme } from "@/components/providers/theme-provider";
 
 interface MediaItem {
   MediaId?: string;
@@ -58,6 +59,7 @@ function getVariantPrice(pricing: Pricing | undefined): VariantPrice | null {
  */
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const { theme } = useTheme();
   const [activeImage, setActiveImage] = useState<string | null>(null);
 
   const productList = useEntityList("Product", { where: { Slug: { eq: slug } }, pageSize: 1 }, Boolean(slug));
@@ -71,7 +73,7 @@ export default function ProductDetailPage() {
   );
   const variants = variantList.data?.items ?? [];
 
-  const placeholder = useMemo(() => (product ? assignPlaceholders([product])[0] : ""), [product]);
+  const placeholder = useMemo(() => (product ? assignPlaceholders([product], theme)[0] : ""), [product, theme]);
 
   if (productList.isLoading) {
     return (

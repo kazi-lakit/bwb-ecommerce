@@ -1,13 +1,9 @@
 import { useMemo } from "react";
 import clsx from "clsx";
 import { useEntityList } from "@/lib/blocks/hooks";
-import type { EntityRecord } from "@/lib/blocks/collections";
+import { entityLabel } from "@/lib/format";
 import { Select } from "@/components/ui/select";
 import { Chip } from "@/components/ui/chip";
-
-function labelFor(item: EntityRecord): string {
-  return (item.Name as string) || (item.Sku as string) || (item.Code as string) || ((item.ItemId ?? item.itemId) as string);
-}
 
 export interface ReferenceSelectProps {
   /** The schema this field's value(s) point at — see reference-fields.ts. */
@@ -29,7 +25,7 @@ export interface ReferenceSelectProps {
 export function ReferenceSelect({ targetSchema, isArray, value, onChange, error, id }: ReferenceSelectProps) {
   const list = useEntityList(targetSchema, { pageSize: 200 });
   const options = useMemo(
-    () => [...(list.data?.items ?? [])].sort((a, b) => labelFor(a).localeCompare(labelFor(b))),
+    () => [...(list.data?.items ?? [])].sort((a, b) => entityLabel(a).localeCompare(entityLabel(b))),
     [list.data]
   );
 
@@ -57,7 +53,7 @@ export function ReferenceSelect({ targetSchema, isArray, value, onChange, error,
           const optionId = (o.ItemId ?? o.itemId) as string;
           return (
             <Chip key={optionId} selected={selected.includes(optionId)} onClick={() => toggle(optionId)}>
-              {labelFor(o)}
+              {entityLabel(o)}
             </Chip>
           );
         })}
@@ -75,7 +71,7 @@ export function ReferenceSelect({ targetSchema, isArray, value, onChange, error,
       <option value="">{list.isLoading ? "Loading…" : `Select ${targetSchema.toLowerCase()}…`}</option>
       {options.map((o) => (
         <option key={(o.ItemId ?? o.itemId) as string} value={(o.ItemId ?? o.itemId) as string}>
-          {labelFor(o)}
+          {entityLabel(o)}
         </option>
       ))}
     </Select>

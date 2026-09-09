@@ -13,7 +13,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
       <select
         ref={ref}
         className={clsx(
-          "h-10 w-full appearance-none rounded-md border border-[#d9dee3] bg-canvas pl-3.5 pr-9 text-sm text-ink",
+          "h-10 w-full appearance-none rounded-md border border-hairline bg-canvas pl-3.5 pr-9 text-sm text-ink",
           "outline-none transition-shadow focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/15",
           "disabled:opacity-50",
           className

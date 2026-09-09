@@ -20,6 +20,17 @@ export function fieldLabel(name: string): string {
   return titleCase(stripped || name);
 }
 
+/**
+ * A human label for an entity record — prefers Name, then Sku, then Code, falling
+ * back to its ItemId. Same precedence used everywhere a record needs to read as "the
+ * thing a human would call it" (a reference picker's options, a resolved id-column
+ * value in a table) instead of a raw id.
+ */
+export function entityLabel(record: Record<string, unknown>): string {
+  const id = (record.ItemId ?? record.itemId) as string | undefined;
+  return (record.Name as string) || (record.Sku as string) || (record.Code as string) || id || "";
+}
+
 export function formatCurrency(amount?: number | null, currency?: string): string {
   if (amount == null || Number.isNaN(amount)) return "—";
   try {

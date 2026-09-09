@@ -17,6 +17,10 @@
   --color-brand-warn: #ffab00;
   --color-brand-error: #ff3e1d;
   --color-brand-success: #71dd37;
+  /* Deeper than --color-brand-success/-warn themselves — those are tuned to sit as a
+     tinted background, too vivid to read comfortably as small text at that size. */
+  --color-status-positive-text: #2f8b0a;
+  --color-status-warning-text: #a66300;
   --color-canvas: #ffffff;
   --color-admin-canvas: #f5f5f9;
   --color-surface: #f5f5f9;
@@ -30,6 +34,8 @@
   --color-stone: #8592a3;
   --color-muted: #a1acb8;
   --color-on-dark: #ffffff;
+  /* Dialog/drawer/mobile-nav scrim — same tint in both themes, a dark backdrop reads fine over either. */
+  --color-overlay: rgb(34 48 63 / 40%);
 
   --shadow-card: 0 2px 6px rgba(67, 89, 113, 0.12);
   --shadow-float: 0 2px 4px rgba(67, 89, 113, 0.12);
@@ -55,6 +61,8 @@
   --color-brand-warn: #e0a839;
   --color-brand-error: #ea8a8a;
   --color-brand-success: #2ee0ac;
+  --color-status-positive-text: #4fdb8a;
+  --color-status-warning-text: #f0b429;
 
   --color-canvas: #2b2c40;
   --color-admin-canvas: #232333;
@@ -85,6 +93,8 @@
   --color-brand-warn: var(--color-brand-warn);
   --color-brand-error: var(--color-brand-error);
   --color-brand-success: var(--color-brand-success);
+  --color-status-positive-text: var(--color-status-positive-text);
+  --color-status-warning-text: var(--color-status-warning-text);
   --color-canvas: var(--color-canvas);
   --color-admin-canvas: var(--color-admin-canvas);
   --color-surface: var(--color-surface);
@@ -98,6 +108,7 @@
   --color-stone: var(--color-stone);
   --color-muted: var(--color-muted);
   --color-on-dark: var(--color-on-dark);
+  --color-overlay: var(--color-overlay);
 
   --radius-xs: var(--radius-xs);
   --radius-sm: var(--radius-sm);

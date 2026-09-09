@@ -1,4 +1,4 @@
-# Ecommerce — product & inventory management on SELISE Blocks
+# BWB Commerce — product & inventory management on SELISE Blocks
 
 A React 19 single-page application, built the same way as the sibling `dms-app`, for
 managing the product/inventory catalog described in `../ECOMMERCE_INVENTORY_SCHEMAS.json`:

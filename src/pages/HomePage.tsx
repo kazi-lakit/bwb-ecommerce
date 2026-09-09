@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 import { useEntityList } from "@/lib/blocks/hooks";
 import { assignPlaceholders } from "@/lib/placeholder-images";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
+import { useTheme } from "@/components/providers/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
@@ -21,6 +22,7 @@ const ALL = "";
  * App.tsx and by Product's WriteAccessLevel on the server).
  */
 export default function HomePage() {
+  const { theme } = useTheme();
   const [pageNo, setPageNo] = useState(1);
   const [brandId, setBrandId] = useState(ALL);
   const [categoryId, setCategoryId] = useState(ALL);
@@ -83,7 +85,7 @@ export default function HomePage() {
   // Recomputed only when the fetched item set changes, so a placeholder doesn't
   // reshuffle on every unrelated re-render — but a fresh, still-random assignment each
   // time the catalog page actually changes.
-  const placeholders = useMemo(() => assignPlaceholders(items), [items]);
+  const placeholders = useMemo(() => assignPlaceholders(items, theme), [items, theme]);
 
   return (
     <div className="min-h-screen bg-canvas">

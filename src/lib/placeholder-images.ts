@@ -1,19 +1,24 @@
 /**
  * 20 abstract placeholder images for products with no real photo (or a broken one) —
- * flat illustrated organic blobs, leaf shapes, and dot trails over a warm cream
- * background with a paper-grain texture, deterministically generated per index (not
- * random per render) so the same placeholder index always looks the same. Deliberately
- * non-representational: shapes are abstract blobs/leaves, never assembled into
- * anything that reads as the actual product. Rendered as inline SVG data URIs — no
- * network request, no asset files.
+ * flat illustrated organic blobs, leaf shapes, and dot trails over a paper-grain
+ * textured background, deterministically generated per index (not random per render)
+ * so the same placeholder index always looks the same. Deliberately non-representational:
+ * shapes are abstract blobs/leaves, never assembled into anything that reads as the
+ * actual product. Rendered as inline SVG data URIs — no network request, no asset files.
+ *
+ * Theme-aware: there's a light-background and a dark-background palette set (see
+ * LIGHT_PALETTES/DARK_PALETTES below) so a placeholder never looks like a bright card
+ * pasted onto a dark-mode page — callers pass the current theme from `useTheme()`.
  */
 const PLACEHOLDER_COUNT = 20;
 const VIEWBOX = 240;
 
+export type PlaceholderTheme = "light" | "dark";
+
 /**
- * Several curated color-shade combinations (background + blob colors + a dark accent
- * for leaves/dots), cycled across the 20 placeholders so the set has real variety
- * instead of every image being a reshuffle of one palette.
+ * A curated color-shade combination (background + blob colors + an accent for
+ * leaves/dots), cycled across the 20 placeholders so the set has real variety instead
+ * of every image being a reshuffle of one palette.
  */
 interface Palette {
   background: string;
@@ -21,7 +26,7 @@ interface Palette {
   accent: string;
 }
 
-const PALETTES: Palette[] = [
+const LIGHT_PALETTES: Palette[] = [
   {
     // Terracotta garden
     background: "#f4e8d6",
@@ -53,6 +58,44 @@ const PALETTES: Palette[] = [
     accent: "#223328",
   },
 ];
+
+// Same 5 moods, re-tuned for a dark page: background is the app's own dark-mode canvas
+// color (--color-canvas: #2b2c40, see globals.css) or a shade barely a few RGB units
+// off it — never an unrelated near-black — so a placeholder reads as part of the same
+// surface instead of a mismatched tile. Blob colors are slightly muted so they don't
+// glare, and the accent (leaves/dots) is flipped to a light tone — the light theme's
+// dark-olive/navy accents would be nearly invisible against a dark background.
+const DARK_PALETTES: Palette[] = [
+  {
+    background: "#2b2c40", // exact match of --color-canvas (dark)
+    colors: ["#c86a4d", "#d99a3d", "#a84422", "#c98f86"],
+    accent: "#f0e4c8",
+  },
+  {
+    background: "#2a2d3c",
+    colors: ["#7c8c5e", "#c68870", "#c7a666", "#b47876"],
+    accent: "#eef0e2",
+  },
+  {
+    background: "#292c42",
+    colors: ["#4d6b85", "#a3492f", "#c9a565", "#7a4d5c"],
+    accent: "#e9eef0",
+  },
+  {
+    background: "#2f2b3f",
+    colors: ["#916279", "#c4838c", "#b58e68", "#d1ac83"],
+    accent: "#f5e9ec",
+  },
+  {
+    background: "#2b2a3a",
+    colors: ["#b3792a", "#93472f", "#2f6b62", "#cbae7a"],
+    accent: "#f2ead9",
+  },
+];
+
+function palettesFor(theme: PlaceholderTheme): Palette[] {
+  return theme === "dark" ? DARK_PALETTES : LIGHT_PALETTES;
+}
 
 // Small deterministic PRNG (mulberry32) so each index's layout is fixed and reproducible.
 function seededRandom(seed: number): () => number {
@@ -117,9 +160,10 @@ function pick<T>(arr: T[], rand: () => number): T {
   return arr[Math.floor(rand() * arr.length)];
 }
 
-function buildSvg(index: number): string {
+function buildSvg(index: number, theme: PlaceholderTheme): string {
   const rand = seededRandom(index * 104729 + 17);
-  const palette = PALETTES[index % PALETTES.length];
+  const palettes = palettesFor(theme);
+  const palette = palettes[index % palettes.length];
 
   const blobCount = 3 + (index % 3);
   let blobs = "";
@@ -151,6 +195,12 @@ function buildSvg(index: number): string {
     rand
   );
 
+  // "multiply" grain reads as fine dark speckle on the light palettes' pale
+  // backgrounds; against the dark palettes' near-black backgrounds it would barely
+  // show at all, so dark mode blends the same black-noise layer with "soft-light"
+  // instead, which stays visible without washing out the background.
+  const grainBlend = theme === "dark" ? "soft-light" : "multiply";
+
   return (
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${VIEWBOX} ${VIEWBOX}">` +
     `<defs>` +
@@ -163,29 +213,36 @@ function buildSvg(index: number): string {
     blobs +
     leaves +
     trail +
-    `<rect width="${VIEWBOX}" height="${VIEWBOX}" filter="url(#grain)" opacity="0.5" style="mix-blend-mode:multiply" />` +
+    `<rect width="${VIEWBOX}" height="${VIEWBOX}" filter="url(#grain)" opacity="0.5" style="mix-blend-mode:${grainBlend}" />` +
     `</svg>`
   );
 }
 
-export const PLACEHOLDER_IMAGES: string[] = Array.from(
-  { length: PLACEHOLDER_COUNT },
-  (_, i) => `data:image/svg+xml,${encodeURIComponent(buildSvg(i))}`
-);
+const cache: Record<PlaceholderTheme, string[] | undefined> = { light: undefined, dark: undefined };
+
+function getPlaceholderImages(theme: PlaceholderTheme): string[] {
+  const cached = cache[theme];
+  if (cached) return cached;
+  const images = Array.from({ length: PLACEHOLDER_COUNT }, (_, i) => `data:image/svg+xml,${encodeURIComponent(buildSvg(i, theme))}`);
+  cache[theme] = images;
+  return images;
+}
 
 /**
  * Assigns every item a placeholder — even one with a real photo gets one, held in
  * reserve as the `<img onError>` fallback for a dead/broken URL (seed data's example.com
  * URLs, a deleted upload, etc.), not just for a genuinely empty Media array. Drawn so the
- * same placeholder never repeats within the next `avoidWindow` items.
+ * same placeholder never repeats within the next `avoidWindow` items. Pass the current
+ * `useTheme()` value so the picked images match light/dark mode.
  */
-export function assignPlaceholders<T>(items: T[], avoidWindow = 4): string[] {
+export function assignPlaceholders<T>(items: T[], theme: PlaceholderTheme, avoidWindow = 4): string[] {
+  const images = getPlaceholderImages(theme);
   const recent: number[] = [];
   return items.map(() => {
-    const available = PLACEHOLDER_IMAGES.map((_, i) => i).filter((i) => !recent.includes(i));
+    const available = images.map((_, i) => i).filter((i) => !recent.includes(i));
     const pick = available[Math.floor(Math.random() * available.length)];
     recent.push(pick);
     if (recent.length > avoidWindow) recent.shift();
-    return PLACEHOLDER_IMAGES[pick];
+    return images[pick];
   });
 }

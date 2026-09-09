@@ -116,7 +116,7 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
       </aside>
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-[#22303f]/40 backdrop-blur-[1px]" onClick={onCloseMobile} />
+          <div className="absolute inset-0 bg-overlay backdrop-blur-[1px]" onClick={onCloseMobile} />
           <aside className="relative flex h-full w-[17rem] flex-col bg-canvas shadow-2xl" onClick={(event) => event.stopPropagation()}>
             {content}
           </aside>

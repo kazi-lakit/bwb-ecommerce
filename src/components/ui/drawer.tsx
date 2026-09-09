@@ -29,7 +29,7 @@ export function Drawer({ onClose, title, description, children, className }: Dra
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-[#22303f]/40 backdrop-blur-[1px]"
+      className="fixed inset-0 z-50 flex justify-end bg-overlay backdrop-blur-[1px]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}

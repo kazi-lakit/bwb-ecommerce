@@ -5,9 +5,11 @@ import { ENTITY_ORDER } from "@/lib/blocks/schema-meta";
 import { getEntityMeta, type EntityRecord } from "@/lib/blocks/collections";
 import { useEntityList, useEntityMutations } from "@/lib/blocks/hooks";
 import { SEARCH_FIELD_BY_SCHEMA, STATUS_OPTIONS_BY_SCHEMA } from "@/lib/blocks/list-config";
+import { REFERENCE_FIELD_TARGETS } from "@/lib/blocks/reference-fields";
 import { slugFor } from "@/components/layout/nav-items";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { assignPlaceholders } from "@/lib/placeholder-images";
+import { useTheme } from "@/components/providers/theme-provider";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { SearchInput } from "@/components/ui/search-input";
@@ -21,7 +23,7 @@ import { ResourceTable } from "@/components/resource/resource-table";
 import { ProductTable } from "@/components/resource/product-table";
 import { ResourceForm } from "@/components/resource/resource-form";
 import { toast } from "@/lib/toast-store";
-import { fieldLabel, titleCase } from "@/lib/format";
+import { entityLabel, fieldLabel, titleCase } from "@/lib/format";
 
 const SLUG_TO_SCHEMA: Record<string, string> = Object.fromEntries(ENTITY_ORDER.map((name) => [slugFor(name), name]));
 
@@ -33,6 +35,7 @@ function humanizeStatus(status: string): string {
 
 export default function ResourceListPage() {
   const { entity } = useParams<{ entity: string }>();
+  const { theme } = useTheme();
   const schemaName = entity ? SLUG_TO_SCHEMA[entity] : undefined;
 
   const [pageNo, setPageNo] = useState(1);
@@ -58,34 +61,68 @@ export default function ResourceListPage() {
   const list = useEntityList(schemaName ?? "", { pageNo, pageSize: PAGE_SIZE, where });
   const mutations = useEntityMutations(schemaName ?? "");
 
-  // Category is self-referencing (ParentId points at another Category); resolve it to a
-  // name for the table instead of showing the raw ItemId. Fetches the full collection
-  // (not just this page) since a parent may live outside the page currently displayed.
-  const isCategory = schemaName === "Category";
-  const allCategories = useEntityList("Category", { pageSize: 200 }, isCategory || schemaName === "Product");
-  const categoryNames = useMemo(() => {
-    const byId: Record<string, string> = {};
-    for (const c of allCategories.data?.items ?? []) {
-      const id = (c.ItemId ?? c.itemId) as string | undefined;
-      if (id && typeof c.Name === "string") byId[id] = c.Name;
-    }
-    return byId;
-  }, [allCategories.data]);
-
-  // Product's list additionally needs Brand names (BrandId -> Name).
   const isProduct = schemaName === "Product";
-  const allBrands = useEntityList("Brand", { pageSize: 200 }, isProduct);
-  const brandNames = useMemo(() => {
-    const byId: Record<string, string> = {};
-    for (const b of allBrands.data?.items ?? []) {
-      const id = (b.ItemId ?? b.itemId) as string | undefined;
-      if (id && typeof b.Name === "string") byId[id] = b.Name;
+
+  // Every reference field (WarehouseId, ProductId, VariantId, BrandId, CategoryIds,
+  // ParentId, SupplierId, …) resolves to the target record's name instead of showing a
+  // raw ItemId — in every entity's table, not just Category/Product. Fetches the full
+  // target collection (not just this page) since the referenced record may live on a
+  // different page than the one currently displayed. A fixed set of hooks — one per
+  // possible target schema — each just toggled on/off by `enabled` depending on
+  // whether the entity being viewed actually has a field pointing at that schema.
+  const neededTargets = useMemo(() => {
+    const set = new Set<string>();
+    for (const field of meta?.fields ?? []) {
+      const target = REFERENCE_FIELD_TARGETS[field.name];
+      if (target) set.add(target);
     }
-    return byId;
-  }, [allBrands.data]);
+    return set;
+  }, [meta]);
+
+  const brandsForLookup = useEntityList("Brand", { pageSize: 200 }, neededTargets.has("Brand"));
+  const categoriesForLookup = useEntityList("Category", { pageSize: 200 }, neededTargets.has("Category"));
+  const warehousesForLookup = useEntityList("Warehouse", { pageSize: 200 }, neededTargets.has("Warehouse"));
+  const productsForLookup = useEntityList("Product", { pageSize: 200 }, neededTargets.has("Product"));
+  const variantsForLookup = useEntityList("ProductVariant", { pageSize: 200 }, neededTargets.has("ProductVariant"));
+  const suppliersForLookup = useEntityList("Supplier", { pageSize: 200 }, neededTargets.has("Supplier"));
+
+  const lookupsBySchema = useMemo(() => {
+    function nameMap(records: EntityRecord[]): Record<string, string> {
+      const byId: Record<string, string> = {};
+      for (const record of records) {
+        const id = (record.ItemId ?? record.itemId) as string | undefined;
+        if (id) byId[id] = entityLabel(record);
+      }
+      return byId;
+    }
+    return {
+      Brand: nameMap(brandsForLookup.data?.items ?? []),
+      Category: nameMap(categoriesForLookup.data?.items ?? []),
+      Warehouse: nameMap(warehousesForLookup.data?.items ?? []),
+      Product: nameMap(productsForLookup.data?.items ?? []),
+      ProductVariant: nameMap(variantsForLookup.data?.items ?? []),
+      Supplier: nameMap(suppliersForLookup.data?.items ?? []),
+    } as Record<string, Record<string, string>>;
+  }, [
+    brandsForLookup.data,
+    categoriesForLookup.data,
+    warehousesForLookup.data,
+    productsForLookup.data,
+    variantsForLookup.data,
+    suppliersForLookup.data,
+  ]);
+
+  const referenceLabels = useMemo(() => {
+    const result: Record<string, Record<string, string>> = {};
+    for (const field of meta?.fields ?? []) {
+      const target = REFERENCE_FIELD_TARGETS[field.name];
+      if (target) result[field.name] = lookupsBySchema[target];
+    }
+    return result;
+  }, [meta, lookupsBySchema]);
 
   const items = list.data?.items ?? [];
-  const placeholders = useMemo(() => (isProduct ? assignPlaceholders(items) : []), [isProduct, items]);
+  const placeholders = useMemo(() => (isProduct ? assignPlaceholders(items, theme) : []), [isProduct, items, theme]);
 
   if (!schemaName || !meta) return <Navigate to="/" replace />;
 
@@ -202,20 +239,14 @@ export default function ResourceListPage() {
           {isProduct ? (
             <ProductTable
               items={items}
-              categoryNames={categoryNames}
-              brandNames={brandNames}
+              categoryNames={lookupsBySchema.Category}
+              brandNames={lookupsBySchema.Brand}
               placeholders={placeholders}
               onEdit={setEditing}
               onDelete={setDeleting}
             />
           ) : (
-            <ResourceTable
-              meta={meta}
-              items={items}
-              onEdit={setEditing}
-              onDelete={setDeleting}
-              referenceLabels={isCategory ? { ParentId: categoryNames } : undefined}
-            />
+            <ResourceTable meta={meta} items={items} onEdit={setEditing} onDelete={setDeleting} referenceLabels={referenceLabels} />
           )}
           <div className="flex flex-col gap-3 border-t border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-muted">

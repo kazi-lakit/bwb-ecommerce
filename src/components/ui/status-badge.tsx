@@ -25,10 +25,17 @@ const TONE_BY_STATUS: Record<string, "positive" | "neutral" | "warning" | "negat
 };
 
 const TONE_CLASSES: Record<"positive" | "neutral" | "warning" | "negative", string> = {
-  positive: "bg-brand-success/15 text-[#46a615]",
+  positive: "bg-brand-success/15 text-status-positive-text",
   neutral: "bg-surface text-steel",
-  warning: "bg-brand-warn/15 text-[#c88400]",
+  warning: "bg-brand-warn/15 text-status-warning-text",
   negative: "bg-brand-error/15 text-brand-error",
+};
+
+const DOT_CLASSES: Record<"positive" | "neutral" | "warning" | "negative", string> = {
+  positive: "bg-brand-success",
+  neutral: "bg-muted",
+  warning: "bg-brand-warn",
+  negative: "bg-brand-error",
 };
 
 function toneFor(status: string): "positive" | "neutral" | "warning" | "negative" {
@@ -42,13 +49,8 @@ function humanize(status: string): string {
 export function StatusBadge({ status, className }: { status: string; className?: string }) {
   const tone = toneFor(status);
   return (
-    <span
-      className={clsx(
-        "inline-flex items-center rounded px-2.5 py-1 text-xs font-semibold",
-        TONE_CLASSES[tone],
-        className
-      )}
-    >
+    <span className={clsx("inline-flex items-center gap-1.5 rounded px-2.5 py-1 text-xs font-semibold", TONE_CLASSES[tone], className)}>
+      <span className={clsx("h-1.5 w-1.5 flex-none rounded-full", DOT_CLASSES[tone])} aria-hidden="true" />
       {humanize(status)}
     </span>
   );
