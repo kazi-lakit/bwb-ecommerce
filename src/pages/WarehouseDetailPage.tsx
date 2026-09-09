@@ -35,6 +35,7 @@ function useScopedCount(schemaName: string, where: Record<string, unknown>, enab
 
 const warehouseMeta = getEntityMeta("Warehouse");
 const inventoryMeta = getEntityMeta("WarehouseInventory");
+const transferMeta = getEntityMeta("StockTransfer");
 
 /**
  * A warehouse's own page: its details, a small dashboard scoped to just this
@@ -52,6 +53,11 @@ export default function WarehouseDetailPage() {
   const [creatingInventory, setCreatingInventory] = useState(false);
   const [deletingInventory, setDeletingInventory] = useState<EntityRecord | null>(null);
 
+  const [transferPageNo, setTransferPageNo] = useState(1);
+  const [editingTransfer, setEditingTransfer] = useState<EntityRecord | null>(null);
+  const [creatingTransfer, setCreatingTransfer] = useState(false);
+  const [deletingTransfer, setDeletingTransfer] = useState<EntityRecord | null>(null);
+
   const warehouseQuery = useEntityList("Warehouse", { where: { ItemId: { eq: warehouseId } }, pageSize: 1 }, hasId);
   const warehouse = warehouseQuery.data?.items[0];
   const warehouseMutations = useEntityMutations("Warehouse");
@@ -61,6 +67,18 @@ export default function WarehouseDetailPage() {
   const inventoryMutations = useEntityMutations("WarehouseInventory");
   const inventoryItems = inventoryList.data?.items ?? [];
   const { referenceLabels } = useReferenceLabels(inventoryMeta, inventoryItems);
+
+  const transferWhere = useMemo(
+    () =>
+      warehouseId
+        ? { or: [{ SourceWarehouseId: { eq: warehouseId } }, { DestinationWarehouseId: { eq: warehouseId } }] }
+        : undefined,
+    [warehouseId]
+  );
+  const transferList = useEntityList("StockTransfer", { pageNo: transferPageNo, pageSize: PAGE_SIZE, where: transferWhere }, hasId);
+  const transferMutations = useEntityMutations("StockTransfer");
+  const transferItems = transferList.data?.items ?? [];
+  const { referenceLabels: transferReferenceLabels } = useReferenceLabels(transferMeta, transferItems);
 
   const inventoryCount = useScopedCount("WarehouseInventory", { WarehouseId: { eq: warehouseId } }, hasId);
   const transferCount = useScopedCount(
@@ -113,11 +131,18 @@ export default function WarehouseDetailPage() {
   const contact = warehouse.Contact as Contact | undefined;
   const totalInventory = inventoryList.data?.totalCount ?? 0;
   const hasNextPage = pageNo * PAGE_SIZE < totalInventory;
+  const totalTransfers = transferList.data?.totalCount ?? 0;
+  const hasNextTransferPage = transferPageNo * PAGE_SIZE < totalTransfers;
   const warehouseName = (warehouse.Name as string) || "Untitled warehouse";
 
   function closeInventoryDrawer() {
     setCreatingInventory(false);
     setEditingInventory(null);
+  }
+
+  function closeTransferDrawer() {
+    setCreatingTransfer(false);
+    setEditingTransfer(null);
   }
 
   function handleUpdateWarehouse(payload: Record<string, unknown>) {
@@ -165,9 +190,48 @@ export default function WarehouseDetailPage() {
     });
   }
 
+  function handleCreateTransfer(payload: Record<string, unknown>) {
+    transferMutations.create.mutate(payload, {
+      onSuccess: () => {
+        toast.success("Stock transfer created.");
+        closeTransferDrawer();
+      },
+    });
+  }
+
+  function handleUpdateTransfer(payload: Record<string, unknown>) {
+    if (!editingTransfer) return;
+    const itemId = (editingTransfer.ItemId ?? editingTransfer.itemId) as string;
+    transferMutations.update.mutate(
+      { itemId, payload },
+      {
+        onSuccess: () => {
+          toast.success("Stock transfer updated.");
+          closeTransferDrawer();
+        },
+      }
+    );
+  }
+
+  function handleDeleteTransfer() {
+    if (!deletingTransfer) return;
+    transferMutations.remove.mutate(deletingTransfer, {
+      onSuccess: () => {
+        toast.success("Stock transfer deleted.");
+        setDeletingTransfer(null);
+      },
+    });
+  }
+
   const newInventoryButton = (
     <Button onClick={() => setCreatingInventory(true)}>
       <Plus size={16} /> New inventory record
+    </Button>
+  );
+
+  const newTransferButton = (
+    <Button onClick={() => setCreatingTransfer(true)}>
+      <Plus size={16} /> New stock transfer
     </Button>
   );
 
@@ -288,6 +352,62 @@ export default function WarehouseDetailPage() {
         )}
       </section>
 
+      <section className="admin-card mt-5 overflow-hidden">
+        <div className="flex flex-col gap-3 border-b border-hairline px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-ink">Stock transfers involving this warehouse</h2>
+            <p className="text-sm text-muted">
+              {totalTransfers} record{totalTransfers === 1 ? "" : "s"}
+            </p>
+          </div>
+          {newTransferButton}
+        </div>
+
+        {transferList.isLoading ? (
+          <div className="p-5">
+            <TableSkeleton />
+          </div>
+        ) : transferList.isError ? (
+          <div className="p-5">
+            <ErrorState
+              message={transferList.error instanceof Error ? transferList.error.message : undefined}
+              onRetry={() => transferList.refetch()}
+            />
+          </div>
+        ) : transferItems.length === 0 ? (
+          <div className="p-5">
+            <EmptyState
+              title="No stock transfers yet"
+              description="Move stock into or out of this warehouse by creating a transfer."
+              action={newTransferButton}
+            />
+          </div>
+        ) : (
+          <>
+            <ResourceTable
+              meta={transferMeta}
+              items={transferItems}
+              onEdit={setEditingTransfer}
+              onDelete={setDeletingTransfer}
+              referenceLabels={transferReferenceLabels}
+            />
+            <div className="flex flex-col gap-3 border-t border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-sm text-muted">
+                Showing {(transferPageNo - 1) * PAGE_SIZE + 1} to {Math.min(transferPageNo * PAGE_SIZE, totalTransfers)} of {totalTransfers} entries
+              </span>
+              <div className="flex gap-2">
+                <Button variant="secondary" size="sm" disabled={transferPageNo <= 1} onClick={() => setTransferPageNo((p) => Math.max(1, p - 1))}>
+                  Previous
+                </Button>
+                <Button variant="secondary" size="sm" disabled={!hasNextTransferPage} onClick={() => setTransferPageNo((p) => p + 1)}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
+
       {editingWarehouse && (
         <Drawer onClose={() => setEditingWarehouse(false)} title="Edit warehouse" description="Update this warehouse's details.">
           <ResourceForm
@@ -326,6 +446,39 @@ export default function WarehouseDetailPage() {
           loading={inventoryMutations.remove.isPending}
           onConfirm={handleDeleteInventory}
           onCancel={() => setDeletingInventory(null)}
+        />
+      )}
+
+      {(creatingTransfer || editingTransfer) && (
+        <Drawer
+          onClose={closeTransferDrawer}
+          title={editingTransfer ? "Edit stock transfer" : "New stock transfer"}
+          description={
+            editingTransfer
+              ? "Update this stock transfer's details."
+              : `Move stock into or out of ${warehouseName}. Set the source and destination warehouse below.`
+          }
+        >
+          <ResourceForm
+            meta={transferMeta}
+            record={editingTransfer}
+            initialValues={{ SourceWarehouseId: id }}
+            submitting={transferMutations.create.isPending || transferMutations.update.isPending}
+            onSubmit={editingTransfer ? handleUpdateTransfer : handleCreateTransfer}
+            onCancel={closeTransferDrawer}
+          />
+        </Drawer>
+      )}
+
+      {deletingTransfer && (
+        <ConfirmDialog
+          title="Delete this stock transfer?"
+          description="This action can't be undone."
+          confirmLabel="Delete"
+          danger
+          loading={transferMutations.remove.isPending}
+          onConfirm={handleDeleteTransfer}
+          onCancel={() => setDeletingTransfer(null)}
         />
       )}
     </div>
