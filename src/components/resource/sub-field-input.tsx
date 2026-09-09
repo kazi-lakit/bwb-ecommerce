@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import type { FieldMeta } from "@/lib/blocks/schema-meta";
+import { fieldLabel } from "@/lib/format";
 
 /**
  * Renders one control for a field inside a complex type's shape (Address.City,
@@ -66,7 +67,7 @@ export function SubFieldInput({ field, value, onChange }: { field: FieldMeta; va
   return (
     <Input
       className="h-9 text-sm"
-      placeholder={field.name}
+      placeholder={fieldLabel(field.name)}
       value={(value as string) ?? ""}
       onChange={(e) => onChange(e.target.value)}
     />

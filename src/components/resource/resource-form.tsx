@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { EntityMeta, FieldMeta } from "@/lib/blocks/schema-meta";
 import type { EntityRecord } from "@/lib/blocks/collections";
 import { FIELD_SECTIONS } from "@/lib/blocks/field-sections";
+import { fieldLabel } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { FieldInput, isComplexField } from "./field-input";
@@ -75,7 +76,7 @@ export function ResourceForm({ meta, record, submitting, onSubmit, onCancel }: R
                 >
                   {field.type !== "Boolean" && (
                     <label htmlFor={complex ? undefined : inputId} className="text-sm font-medium text-ink">
-                      {field.name}
+                      {fieldLabel(field.name)}
                       {field.required && (
                         <span className="text-brand-error" aria-label="required">
                           {" "}

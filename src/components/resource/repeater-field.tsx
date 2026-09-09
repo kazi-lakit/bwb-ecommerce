@@ -3,6 +3,7 @@ import { Plus, Trash2 } from "lucide-react";
 import type { FieldMeta } from "@/lib/blocks/schema-meta";
 import { COMPLEX_TYPES } from "@/lib/blocks/schema-meta";
 import { Button } from "@/components/ui/button";
+import { fieldLabel } from "@/lib/format";
 import { SubFieldInput } from "./sub-field-input";
 
 function safeParseArray(json: string): Record<string, unknown>[] {
@@ -47,13 +48,13 @@ export function RepeaterField({ field, value, onChange }: { field: FieldMeta; va
 
   return (
     <div className="space-y-2">
-      {items.length === 0 && <p className="text-xs text-muted">No {field.name.toLowerCase()} yet.</p>}
+      {items.length === 0 && <p className="text-xs text-muted">No {fieldLabel(field.name).toLowerCase()} yet.</p>}
       {items.map((row, index) => (
         <div key={index} className="rounded-md border border-hairline bg-surface-soft p-3">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {shape.map((sub) => (
               <div key={sub.name} className="flex flex-col gap-1">
-                <label className="text-xs font-medium text-steel">{sub.name}</label>
+                <label className="text-xs font-medium text-steel">{fieldLabel(sub.name)}</label>
                 <SubFieldInput field={sub} value={row[sub.name]} onChange={(v) => setCell(index, sub.name, v)} />
               </div>
             ))}
@@ -66,7 +67,7 @@ export function RepeaterField({ field, value, onChange }: { field: FieldMeta; va
         </div>
       ))}
       <Button type="button" variant="secondary" size="sm" onClick={addRow}>
-        <Plus size={14} /> Add {singularize(field.name)}
+        <Plus size={14} /> Add {singularize(fieldLabel(field.name))}
       </Button>
     </div>
   );

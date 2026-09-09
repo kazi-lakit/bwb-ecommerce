@@ -9,6 +9,17 @@ export function titleCase(camel: string): string {
   return camel.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/^./, (c) => c.toUpperCase());
 }
 
+/**
+ * A schema field name as a UI label — strips the "Id"/"Ids" reference suffix (so
+ * `CategoryIds` reads "Category", `BrandId` reads "Brand", `SourceWarehouseId` reads
+ * "Source Warehouse") before title-casing. Only ever changes what's displayed — the
+ * underlying field name (and the payload built from it) is untouched.
+ */
+export function fieldLabel(name: string): string {
+  const stripped = name.replace(/Ids$/, "").replace(/Id$/, "");
+  return titleCase(stripped || name);
+}
+
 export function formatCurrency(amount?: number | null, currency?: string): string {
   if (amount == null || Number.isNaN(amount)) return "—";
   try {

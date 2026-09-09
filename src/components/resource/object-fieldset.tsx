@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import type { FieldMeta } from "@/lib/blocks/schema-meta";
 import { COMPLEX_TYPES } from "@/lib/blocks/schema-meta";
+import { fieldLabel } from "@/lib/format";
 import { SubFieldInput } from "./sub-field-input";
 
 function safeParseObject(json: string): Record<string, unknown> {
@@ -33,7 +34,7 @@ export function ObjectFieldset({ field, value, onChange }: { field: FieldMeta; v
     <div className="grid grid-cols-1 gap-3 rounded-md border border-hairline bg-surface-soft p-3 sm:grid-cols-2">
       {shape.map((sub) => (
         <div key={sub.name} className="flex flex-col gap-1">
-          <label className="text-xs font-medium text-steel">{sub.name}</label>
+          <label className="text-xs font-medium text-steel">{fieldLabel(sub.name)}</label>
           <SubFieldInput field={sub} value={obj[sub.name]} onChange={(v) => setSub(sub.name, v)} />
         </div>
       ))}

@@ -21,7 +21,7 @@ import { ResourceTable } from "@/components/resource/resource-table";
 import { ProductTable } from "@/components/resource/product-table";
 import { ResourceForm } from "@/components/resource/resource-form";
 import { toast } from "@/lib/toast-store";
-import { titleCase } from "@/lib/format";
+import { fieldLabel, titleCase } from "@/lib/format";
 
 const SLUG_TO_SCHEMA: Record<string, string> = Object.fromEntries(ENTITY_ORDER.map((name) => [slugFor(name), name]));
 
@@ -169,7 +169,7 @@ export default function ResourceListPage() {
           <SearchInput
             value={searchInput}
             onChange={(e) => updateSearch(e.target.value)}
-            placeholder={`Search by ${searchField.toLowerCase()}…`}
+            placeholder={`Search by ${fieldLabel(searchField).toLowerCase()}…`}
             aria-label={`Search ${label.toLowerCase()}s`}
             className="w-full sm:w-64"
           />

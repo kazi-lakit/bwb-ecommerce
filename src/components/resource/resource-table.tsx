@@ -1,6 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
 import type { EntityMeta } from "@/lib/blocks/schema-meta";
 import type { EntityRecord } from "@/lib/blocks/collections";
+import { fieldLabel } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { DateDisplay } from "@/components/ui/date-display";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
@@ -37,7 +38,7 @@ export function ResourceTable({ meta, items, onEdit, onDelete, referenceLabels }
           <tr>
             {columns.map((c) => (
               <th key={c.name} className="whitespace-nowrap px-4 py-2.5 font-medium">
-                {c.name}
+                {fieldLabel(c.name)}
               </th>
             ))}
             <th className="w-16 px-4 py-2.5">
