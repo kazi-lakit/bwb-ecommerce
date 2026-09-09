@@ -6,8 +6,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<H
     <textarea
       ref={ref}
       className={clsx(
-        "w-full rounded-md border border-hairline bg-canvas px-3.5 py-2.5 text-sm text-ink placeholder:text-muted",
-        "outline-none focus:border-2 focus:border-brand-accent focus:px-[13px] focus:py-[9px]",
+        "w-full rounded-md border border-[#d9dee3] bg-canvas px-3.5 py-2.5 text-sm text-ink placeholder:text-muted",
+        "outline-none transition-shadow focus:border-brand-accent focus:ring-2 focus:ring-brand-accent/15",
         className
       )}
       {...props}

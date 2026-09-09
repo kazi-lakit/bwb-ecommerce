@@ -14,17 +14,17 @@ export interface SummaryCardProps {
 
 export function SummaryCard({ label, value, loading, icon: Icon, to }: SummaryCardProps) {
   const card = (
-    <Card className="flex items-start justify-between gap-3 p-5 transition-shadow hover:shadow-md">
+    <Card className="group flex items-start justify-between gap-3 p-5 transition-transform hover:-translate-y-0.5">
       <div>
-        <p className="text-sm text-muted">{label}</p>
+        <p className="text-sm font-medium text-steel">{label}</p>
         {loading ? (
           <Skeleton className="mt-2 h-7 w-14" />
         ) : (
           <p className="mt-1 text-2xl font-semibold tabular-nums text-ink">{value ?? "—"}</p>
         )}
       </div>
-      <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-surface text-steel">
-        <Icon size={17} />
+      <div className="flex h-11 w-11 flex-none items-center justify-center rounded-md bg-brand-accent-soft text-brand-accent transition-transform group-hover:scale-105">
+        <Icon size={20} />
       </div>
     </Card>
   );

@@ -47,11 +47,11 @@ function ProtectedLayout() {
   if (status === "loading") return <Loading />;
   if (status === "unauthenticated") return <RedirectToLogin returnTo={location.pathname} />;
   return (
-    <div className="flex min-h-screen flex-1">
+    <div className="flex min-h-screen flex-1 bg-admin-canvas">
       <Sidebar mobileOpen={mobileNavOpen} onCloseMobile={() => setMobileNavOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar onOpenMobile={() => setMobileNavOpen(true)} />
-        <main className="min-w-0 flex-1 overflow-y-auto">
+        <main className="min-w-0 flex-1 overflow-y-auto px-4 pb-8 sm:px-6 lg:px-7">
           <Outlet />
         </main>
       </div>

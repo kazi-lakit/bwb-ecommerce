@@ -9,26 +9,30 @@
 :root {
   color-scheme: light;
 
-  --color-primary: #0a0a0a;
+  --color-primary: #696cff;
   --color-on-primary: #ffffff;
-  --color-brand-accent: #2f6fed;
-  --color-brand-accent-deep: #1f57c9;
-  --color-brand-accent-soft: #cfe0ff;
-  --color-brand-warn: #c37d0d;
-  --color-brand-error: #d45656;
-  --color-brand-success: #1ba673;
+  --color-brand-accent: #696cff;
+  --color-brand-accent-deep: #5f61e6;
+  --color-brand-accent-soft: #e7e7ff;
+  --color-brand-warn: #ffab00;
+  --color-brand-error: #ff3e1d;
+  --color-brand-success: #71dd37;
   --color-canvas: #ffffff;
-  --color-surface: #f7f7f7;
+  --color-admin-canvas: #f5f5f9;
+  --color-surface: #f5f5f9;
   --color-surface-soft: #fafafa;
-  --color-hairline: #e5e5e5;
-  --color-hairline-soft: #ededed;
-  --color-ink: #0a0a0a;
-  --color-charcoal: #1c1c1e;
-  --color-slate: #3a3a3c;
-  --color-steel: #5a5a5c;
-  --color-stone: #888888;
-  --color-muted: #a8a8aa;
+  --color-hairline: #e7e7e8;
+  --color-hairline-soft: #efeff0;
+  --color-ink: #384551;
+  --color-charcoal: #566a7f;
+  --color-slate: #697a8d;
+  --color-steel: #697a8d;
+  --color-stone: #8592a3;
+  --color-muted: #a1acb8;
   --color-on-dark: #ffffff;
+
+  --shadow-card: 0 2px 6px rgba(67, 89, 113, 0.12);
+  --shadow-float: 0 2px 4px rgba(67, 89, 113, 0.12);
 
   --radius-xs: 4px;
   --radius-sm: 6px;
@@ -41,20 +45,21 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --color-primary: #f2f2f3;
-  --color-on-primary: #0a0a0a;
-  --color-charcoal: #d4d4d6;
+  --color-primary: #7d80ff;
+  --color-on-primary: #ffffff;
+  --color-charcoal: #d5d7de;
 
-  --color-brand-accent: #6ea1ff;
-  --color-brand-accent-deep: #8fb6ff;
-  --color-brand-accent-soft: #17284a;
+  --color-brand-accent: #7d80ff;
+  --color-brand-accent-deep: #696cff;
+  --color-brand-accent-soft: #34365d;
   --color-brand-warn: #e0a839;
   --color-brand-error: #ea8a8a;
   --color-brand-success: #2ee0ac;
 
-  --color-canvas: #0a0a0b;
-  --color-surface: #1a1a1c;
-  --color-surface-soft: #222224;
+  --color-canvas: #2b2c40;
+  --color-admin-canvas: #232333;
+  --color-surface: #323249;
+  --color-surface-soft: #303044;
 
   --color-hairline: #2c2c2f;
   --color-hairline-soft: #232325;
@@ -66,6 +71,9 @@
   --color-muted: #86868b;
 
   --color-on-dark: #ffffff;
+
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-float: 0 2px 6px rgba(0, 0, 0, 0.22);
 }
 
 @theme inline {
@@ -78,6 +86,7 @@
   --color-brand-error: var(--color-brand-error);
   --color-brand-success: var(--color-brand-success);
   --color-canvas: var(--color-canvas);
+  --color-admin-canvas: var(--color-admin-canvas);
   --color-surface: var(--color-surface);
   --color-surface-soft: var(--color-surface-soft);
   --color-hairline: var(--color-hairline);
@@ -101,10 +110,23 @@
 body {
   background: var(--color-canvas);
   color: var(--color-ink);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Public Sans", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
   transition:
     background-color 0.2s ease,
     color 0.2s ease;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.admin-card {
+  border: 0;
+  border-radius: 0.5rem;
+  background: var(--color-canvas);
+  box-shadow: var(--shadow-card);
 }
 
 ::selection {

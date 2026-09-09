@@ -32,9 +32,9 @@ export function ResourceTable({ meta, items, onEdit, onDelete, referenceLabels }
   const columns = displayColumns(meta);
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-hairline">
+    <div className="overflow-x-auto">
       <table className="w-full min-w-max text-left text-sm">
-        <thead className="border-b border-hairline bg-surface-soft text-xs uppercase tracking-wide text-muted">
+        <thead className="border-b border-hairline text-xs uppercase tracking-wide text-steel">
           <tr>
             {columns.map((c) => (
               <th key={c.name} className="whitespace-nowrap px-4 py-2.5 font-medium">
@@ -50,7 +50,7 @@ export function ResourceTable({ meta, items, onEdit, onDelete, referenceLabels }
           {items.map((item) => {
             const id = (item.ItemId ?? item.itemId) as string;
             return (
-              <tr key={id} className="border-b border-hairline-soft last:border-0 hover:bg-surface-soft">
+              <tr key={id} className="border-b border-hairline-soft last:border-0 hover:bg-surface-soft/70">
                 {columns.map((c) => {
                   const raw = item[c.name];
                   const labels = referenceLabels?.[c.name];

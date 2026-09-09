@@ -29,7 +29,7 @@ export function Drawer({ onClose, title, description, children, className }: Dra
 
   return (
     <div
-      className="fixed inset-0 z-30 flex justify-end bg-black/30"
+      className="fixed inset-0 z-50 flex justify-end bg-[#22303f]/40 backdrop-blur-[1px]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -38,11 +38,11 @@ export function Drawer({ onClose, title, description, children, className }: Dra
         role="dialog"
         aria-modal="true"
         aria-labelledby="drawer-title"
-        className={clsx("flex h-full w-full flex-col border-l border-hairline bg-canvas shadow-xl sm:max-w-2xl", className)}
+        className={clsx("flex h-full w-full flex-col bg-canvas shadow-2xl sm:max-w-2xl", className)}
       >
-        <div className="flex flex-none items-start justify-between gap-4 border-b border-hairline px-6 py-4">
+        <div className="flex flex-none items-start justify-between gap-4 border-b border-hairline px-6 py-5">
           <div>
-            <h2 id="drawer-title" className="text-base font-semibold text-ink">
+            <h2 id="drawer-title" className="text-lg font-semibold text-ink">
               {title}
             </h2>
             {description && <p className="mt-0.5 text-sm text-muted">{description}</p>}

@@ -156,58 +156,49 @@ export default function ResourceListPage() {
   );
 
   return (
-    <div className="p-4 sm:p-6">
+    <div className="pb-2 pt-1">
       <PageHeader
         breadcrumbs={[{ label: "Dashboard", to: "/admin" }, { label: `${label}s` }]}
         title={`${label}s`}
-        description={`${totalCount} record${totalCount === 1 ? "" : "s"}`}
-        actions={newButton}
+        description={`Manage ${label.toLowerCase()} records, details, and status.`}
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        {searchField && (
-          <SearchInput
-            value={searchInput}
-            onChange={(e) => updateSearch(e.target.value)}
-            placeholder={`Search by ${fieldLabel(searchField).toLowerCase()}…`}
-            aria-label={`Search ${label.toLowerCase()}s`}
-            className="w-full sm:w-64"
-          />
-        )}
-        {statusOptions.length > 0 && (
-          <Select
-            value={statusFilter}
-            onChange={(e) => updateStatus(e.target.value)}
-            className="w-full sm:w-44"
-            aria-label="Filter by status"
-          >
-            <option value="">All statuses</option>
-            {statusOptions.map((s) => (
-              <option key={s} value={s}>
-                {humanizeStatus(s)}
-              </option>
-            ))}
-          </Select>
-        )}
-        {hasFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
-            Clear filters
-          </Button>
-        )}
-      </div>
+      <section className="admin-card overflow-hidden">
+        <div className="flex flex-col gap-3 border-b border-hairline px-5 py-5 lg:flex-row lg:items-center">
+          <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+            {searchField && (
+              <SearchInput
+                value={searchInput}
+                onChange={(e) => updateSearch(e.target.value)}
+                placeholder={`Search by ${fieldLabel(searchField).toLowerCase()}…`}
+                aria-label={`Search ${label.toLowerCase()}s`}
+                className="w-full sm:w-72"
+              />
+            )}
+            {statusOptions.length > 0 && (
+              <Select value={statusFilter} onChange={(e) => updateStatus(e.target.value)} className="w-full sm:w-44" aria-label="Filter by status">
+                <option value="">All statuses</option>
+                {statusOptions.map((s) => (
+                  <option key={s} value={s}>{humanizeStatus(s)}</option>
+                ))}
+              </Select>
+            )}
+            {hasFilters && <Button variant="ghost" size="sm" onClick={clearFilters}>Clear filters</Button>}
+          </div>
+          <div className="flex items-center justify-between gap-3 lg:justify-end">
+            <span className="text-sm text-muted">{totalCount} total</span>
+            {newButton}
+          </div>
+        </div>
 
-      {list.isLoading ? (
-        <TableSkeleton columns={isProduct ? 7 : 5} />
-      ) : list.isError ? (
-        <ErrorState message={list.error instanceof Error ? list.error.message : undefined} onRetry={() => list.refetch()} />
-      ) : items.length === 0 ? (
-        <EmptyState
-          title={hasFilters ? "No matching records" : `No ${label.toLowerCase()} records yet`}
-          description={hasFilters ? "Try a different search or clear the filters." : "Create the first one to get started."}
-          action={!hasFilters ? newButton : undefined}
-        />
-      ) : (
-        <>
+        {list.isLoading ? (
+          <div className="p-5"><TableSkeleton columns={isProduct ? 7 : 5} /></div>
+        ) : list.isError ? (
+          <div className="p-5"><ErrorState message={list.error instanceof Error ? list.error.message : undefined} onRetry={() => list.refetch()} /></div>
+        ) : items.length === 0 ? (
+          <div className="p-5"><EmptyState title={hasFilters ? "No matching records" : `No ${label.toLowerCase()} records yet`} description={hasFilters ? "Try a different search or clear the filters." : "Create the first one to get started."} action={!hasFilters ? newButton : undefined} /></div>
+        ) : (
+          <>
           {isProduct ? (
             <ProductTable
               items={items}
@@ -226,9 +217,9 @@ export default function ResourceListPage() {
               referenceLabels={isCategory ? { ParentId: categoryNames } : undefined}
             />
           )}
-          <div className="mt-4 flex items-center justify-between">
-            <span className="text-xs text-muted">
-              Page {pageNo} of {Math.max(1, Math.ceil(totalCount / PAGE_SIZE))}
+          <div className="flex flex-col gap-3 border-t border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm text-muted">
+              Showing {(pageNo - 1) * PAGE_SIZE + 1} to {Math.min(pageNo * PAGE_SIZE, totalCount)} of {totalCount} entries
             </span>
             <div className="flex gap-2">
               <Button variant="secondary" size="sm" disabled={pageNo <= 1} onClick={() => setPageNo((p) => Math.max(1, p - 1))}>
@@ -239,8 +230,9 @@ export default function ResourceListPage() {
               </Button>
             </div>
           </div>
-        </>
-      )}
+          </>
+        )}
+      </section>
 
       {(creating || editing) && (
         <Drawer

@@ -25,7 +25,7 @@ export function Modal({
 
   return (
     <div
-      className="fixed inset-0 z-30 flex items-center justify-center bg-black/30 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#22303f]/40 p-4 backdrop-blur-[1px]"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -34,7 +34,7 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
-        className={clsx("w-full max-w-sm rounded-lg border border-hairline bg-canvas p-6 shadow-xl", className)}
+        className={clsx("w-full max-w-sm rounded-lg bg-canvas p-6 shadow-2xl", className)}
       >
         {children}
       </div>

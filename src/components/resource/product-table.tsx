@@ -32,9 +32,9 @@ function BooleanIndicator({ value, label }: { value: boolean; label: string }) {
  */
 export function ProductTable({ items, categoryNames, brandNames, placeholders, onEdit, onDelete }: ProductTableProps) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-hairline">
+    <div className="overflow-x-auto">
       <table className="w-full min-w-max text-left text-sm">
-        <thead className="border-b border-hairline bg-surface-soft text-xs uppercase tracking-wide text-muted">
+        <thead className="border-b border-hairline text-xs uppercase tracking-wide text-steel">
           <tr>
             <th className="px-4 py-2.5 font-medium">Product</th>
             <th className="px-4 py-2.5 font-medium">Type</th>
@@ -58,7 +58,7 @@ export function ProductTable({ items, categoryNames, brandNames, placeholders, o
             const slug = (product.Slug as string) || id;
 
             return (
-              <tr key={id} className="border-b border-hairline-soft last:border-0 hover:bg-surface-soft">
+              <tr key={id} className="border-b border-hairline-soft last:border-0 hover:bg-surface-soft/70">
                 <td className="px-4 py-2.5">
                   <div className="flex items-center gap-3">
                     <Thumbnail src={image?.Url} fallback={placeholders[i]} alt={(product.Name as string) || "Product"} />

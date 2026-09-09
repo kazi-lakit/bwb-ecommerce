@@ -10,16 +10,16 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  primary: "bg-primary text-on-primary hover:bg-charcoal disabled:bg-hairline disabled:text-muted rounded-full",
-  accent: "bg-brand-accent text-on-dark hover:bg-brand-accent-deep rounded-full",
-  secondary: "bg-transparent text-ink border border-hairline hover:bg-surface rounded-full",
+  primary: "rounded-md bg-brand-accent text-on-dark shadow-[0_2px_4px_rgba(105,108,255,0.35)] hover:bg-brand-accent-deep disabled:bg-hairline disabled:text-muted disabled:shadow-none",
+  accent: "rounded-md bg-brand-accent text-on-dark shadow-[0_2px_4px_rgba(105,108,255,0.35)] hover:bg-brand-accent-deep",
+  secondary: "rounded-md border border-hairline bg-canvas text-steel hover:bg-surface hover:text-ink",
   ghost: "bg-transparent text-ink hover:bg-surface rounded-md",
-  danger: "bg-transparent text-brand-error border border-hairline hover:bg-surface rounded-full",
+  danger: "rounded-md border border-brand-error/30 bg-brand-error/10 text-brand-error hover:bg-brand-error/15",
 };
 
 const sizeClasses: Record<Size, string> = {
-  md: "px-5 py-2.5 text-sm",
-  sm: "px-3 py-1.5 text-sm",
+  md: "min-h-10 px-5 py-2.5 text-sm",
+  sm: "min-h-9 px-3 py-1.5 text-sm",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

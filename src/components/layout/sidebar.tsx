@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { ChevronsLeft, ChevronsRight, ExternalLink, X } from "lucide-react";
+import { ChevronLeft, ExternalLink, PackageOpen, X } from "lucide-react";
 import clsx from "clsx";
 import { ADMIN_NAV_ITEMS, DASHBOARD_NAV_ITEM } from "./nav-items";
 
@@ -14,9 +14,24 @@ function readCollapsed(): boolean {
   }
 }
 
+const GROUPS = [
+  { label: "Catalog", schemas: ["Product", "Category", "Brand"] },
+  { label: "Inventory", schemas: ["Warehouse", "WarehouseInventory", "InventoryReservation", "InventoryMovement", "StockTransfer"] },
+  { label: "Procurement", schemas: ["Supplier", "PurchaseOrder"] },
+];
+
 export interface SidebarProps {
   mobileOpen: boolean;
   onCloseMobile: () => void;
+}
+
+function NavSection({ label, children, collapsed }: { label: string; children: ReactNode; collapsed: boolean }) {
+  return (
+    <div className="mt-5 first:mt-1">
+      {!collapsed && <p className="mb-2 px-4 text-[0.7rem] font-semibold uppercase tracking-[0.09em] text-muted">{label}</p>}
+      <div className="space-y-1">{children}</div>
+    </div>
+  );
 }
 
 export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
@@ -26,88 +41,83 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
     try {
       localStorage.setItem(COLLAPSE_KEY, collapsed ? "1" : "0");
     } catch {
-      // Private browsing / storage disabled — collapse state just won't persist.
+      // Sidebar state remains session-only when storage is unavailable.
     }
   }, [collapsed]);
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     clsx(
-      "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium",
+      "relative flex min-h-11 items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium transition-colors",
       collapsed && "justify-center px-2",
-      isActive ? "bg-primary text-on-primary" : "text-steel hover:bg-surface hover:text-ink"
+      isActive
+        ? "bg-brand-accent-soft text-brand-accent before:absolute before:-right-3 before:top-0 before:h-full before:w-1 before:rounded-l-full before:bg-brand-accent"
+        : "text-steel hover:bg-surface hover:text-ink"
     );
 
   const content = (
     <>
-      <div className={clsx("flex h-16 flex-none items-center gap-2 border-b border-hairline px-6", collapsed && "justify-center px-2")}>
-        <div className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-primary text-on-primary">◆</div>
-        {!collapsed && <span className="truncate font-semibold text-ink">Ecommerce</span>}
-        <button
-          type="button"
-          onClick={onCloseMobile}
-          aria-label="Close navigation"
-          className="ml-auto flex h-8 w-8 items-center justify-center rounded-md text-steel hover:bg-surface md:hidden"
-        >
-          <X size={16} />
+      <div className={clsx("flex h-[5.25rem] flex-none items-center gap-3 px-6", collapsed && "justify-center px-3")}>
+        <div className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-brand-accent text-on-dark shadow-sm">
+          <PackageOpen size={20} strokeWidth={2.4} />
+        </div>
+        {!collapsed && <span className="truncate text-xl font-semibold tracking-tight text-ink">BWB Commerce</span>}
+        <button type="button" onClick={onCloseMobile} aria-label="Close navigation" className="ml-auto flex h-9 w-9 items-center justify-center rounded-full text-steel hover:bg-surface md:hidden">
+          <X size={18} />
         </button>
+        {!collapsed && (
+          <button type="button" onClick={() => setCollapsed(true)} aria-label="Collapse navigation" className="ml-auto hidden h-7 w-7 items-center justify-center rounded-full bg-brand-accent text-white shadow-sm md:flex">
+            <ChevronLeft size={16} />
+          </button>
+        )}
       </div>
-      <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
-        <NavLink to="/admin" end className={linkClass} title="Dashboard">
-          <DASHBOARD_NAV_ITEM.icon size={17} className="flex-none" />
-          {!collapsed && "Dashboard"}
-        </NavLink>
-        <div className={clsx("my-2 border-t border-hairline", collapsed && "mx-1")} />
-        {ADMIN_NAV_ITEMS.map((item) => (
-          <NavLink key={item.schemaName} to={`/admin/${item.slug}`} className={linkClass} title={item.label}>
-            <item.icon size={17} className="flex-none" />
-            {!collapsed && <span className="truncate">{item.label}</span>}
+
+      <nav className="flex-1 overflow-y-auto px-3 pb-4">
+        <NavSection label="Store management" collapsed={collapsed}>
+          <NavLink to="/admin" end className={linkClass} title="Dashboard">
+            <DASHBOARD_NAV_ITEM.icon size={19} className="flex-none" />
+            {!collapsed && "Dashboard"}
           </NavLink>
+        </NavSection>
+
+        {GROUPS.map((group) => (
+          <NavSection key={group.label} label={group.label} collapsed={collapsed}>
+            {group.schemas.map((schemaName) => {
+              const item = ADMIN_NAV_ITEMS.find((candidate) => candidate.schemaName === schemaName);
+              if (!item) return null;
+              return (
+                <NavLink key={item.schemaName} to={`/admin/${item.slug}`} className={linkClass} title={item.label}>
+                  <item.icon size={19} className="flex-none" />
+                  {!collapsed && <span className="truncate">{item.label}</span>}
+                </NavLink>
+              );
+            })}
+          </NavSection>
         ))}
       </nav>
-      <div className="space-y-0.5 border-t border-hairline p-3">
-        <Link
-          to="/"
-          className={clsx(
-            "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-steel hover:bg-surface hover:text-ink",
-            collapsed && "justify-center px-2"
-          )}
-          title="View storefront"
-        >
-          <ExternalLink size={16} className="flex-none" />
+
+      <div className="border-t border-hairline px-3 py-4">
+        <Link to="/" className={clsx("flex min-h-11 items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium text-steel hover:bg-surface hover:text-ink", collapsed && "justify-center px-2")} title="View storefront">
+          <ExternalLink size={18} className="flex-none" />
           {!collapsed && "View storefront"}
         </Link>
-        <button
-          type="button"
-          onClick={() => setCollapsed((c) => !c)}
-          className={clsx(
-            "hidden w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-steel hover:bg-surface hover:text-ink md:flex",
-            collapsed && "justify-center px-2"
-          )}
-        >
-          {collapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
-          {!collapsed && "Collapse"}
-        </button>
+        {collapsed && (
+          <button type="button" onClick={() => setCollapsed(false)} className="mt-1 hidden min-h-11 w-full items-center justify-center rounded-md text-brand-accent hover:bg-brand-accent-soft md:flex" aria-label="Expand navigation">
+            <ChevronLeft size={18} className="rotate-180" />
+          </button>
+        )}
       </div>
     </>
   );
 
   return (
     <>
-      {/* Desktop */}
-      <aside
-        className={clsx(
-          "hidden flex-none flex-col border-r border-hairline bg-surface-soft transition-[width] duration-150 md:flex",
-          collapsed ? "w-16" : "w-60"
-        )}
-      >
+      <aside className={clsx("sticky top-0 z-30 hidden h-screen flex-none flex-col bg-canvas shadow-[2px_0_8px_rgba(67,89,113,0.08)] transition-[width] duration-200 md:flex", collapsed ? "w-20" : "w-[16.25rem]")}>
         {content}
       </aside>
-
-      {/* Mobile drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
-          <div className="absolute inset-0 bg-black/30" onClick={onCloseMobile} />
-          <aside className="relative flex h-full w-64 flex-col border-r border-hairline bg-surface-soft" onClick={(e) => e.stopPropagation()}>
+          <div className="absolute inset-0 bg-[#22303f]/40 backdrop-blur-[1px]" onClick={onCloseMobile} />
+          <aside className="relative flex h-full w-[17rem] flex-col bg-canvas shadow-2xl" onClick={(event) => event.stopPropagation()}>
             {content}
           </aside>
         </div>

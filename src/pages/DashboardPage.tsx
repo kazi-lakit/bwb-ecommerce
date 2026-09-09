@@ -34,8 +34,8 @@ export default function DashboardPage() {
   const openPurchaseOrders = useCount("PurchaseOrder", { Status: { in: OPEN_PURCHASE_ORDER_STATUSES } });
 
   return (
-    <div className="p-4 sm:p-6">
-      <PageHeader title="Dashboard" description="An overview of your product and inventory catalog." />
+    <div className="pb-2 pt-1">
+      <PageHeader title="eCommerce Dashboard" description="An overview of your catalog, inventory, and purchasing operations." />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard label="Total products" icon={Package} to="/admin/product" {...totalProducts} />
@@ -48,7 +48,7 @@ export default function DashboardPage() {
         <SummaryCard label="Open purchase orders" icon={ClipboardList} to="/admin/purchase-order" {...openPurchaseOrders} />
       </div>
 
-      <p className="mt-4 flex items-center gap-1.5 text-xs text-muted">
+      <p className="mt-5 flex items-start gap-2 rounded-lg bg-canvas px-4 py-3 text-xs text-muted shadow-[var(--shadow-float)]">
         <Boxes size={13} /> Available/reserved inventory and low-stock counts need a backend aggregation over
         WarehouseInventory that isn't exposed yet — not shown here to avoid guessing.
       </p>
