@@ -1,5 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Chip } from "@/components/ui/chip";
 import type { FieldMeta } from "@/lib/blocks/schema-meta";
 import { isComplexFieldType } from "@/lib/blocks/schema-meta";
 import { REFERENCE_FIELD_TARGETS } from "@/lib/blocks/reference-fields";
@@ -35,15 +36,9 @@ export function FieldInput({ field, value, onChange, error, id }: FieldInputProp
 
   if (field.type === "Boolean") {
     return (
-      <label className="flex h-10 items-center gap-2 text-sm text-ink">
-        <input
-          type="checkbox"
-          checked={Boolean(value)}
-          onChange={(e) => onChange(e.target.checked)}
-          className="h-4 w-4 rounded border-hairline"
-        />
+      <Chip id={id} selected={Boolean(value)} onClick={() => onChange(!value)}>
         Enabled
-      </label>
+      </Chip>
     );
   }
 

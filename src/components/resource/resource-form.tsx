@@ -72,19 +72,17 @@ export function ResourceForm({ meta, record, submitting, onSubmit, onCancel }: R
                 <div
                   key={field.name}
                   id={`field-${meta.schemaName}-${field.name}`}
-                  className={wide ? "sm:col-span-2 flex flex-col gap-1.5" : field.type === "Boolean" ? "" : "flex flex-col gap-1.5"}
+                  className={wide ? "sm:col-span-2 flex flex-col gap-1.5" : "flex flex-col gap-1.5"}
                 >
-                  {field.type !== "Boolean" && (
-                    <label htmlFor={complex ? undefined : inputId} className="text-sm font-medium text-ink">
-                      {fieldLabel(field.name)}
-                      {field.required && (
-                        <span className="text-brand-error" aria-label="required">
-                          {" "}
-                          *
-                        </span>
-                      )}
-                    </label>
-                  )}
+                  <label htmlFor={complex ? undefined : inputId} className="text-sm font-medium text-ink">
+                    {fieldLabel(field.name)}
+                    {field.required && (
+                      <span className="text-brand-error" aria-label="required">
+                        {" "}
+                        *
+                      </span>
+                    )}
+                  </label>
                   <FieldInput
                     id={inputId}
                     field={field}

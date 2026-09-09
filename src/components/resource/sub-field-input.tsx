@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { Chip } from "@/components/ui/chip";
 import type { FieldMeta } from "@/lib/blocks/schema-meta";
 import { fieldLabel } from "@/lib/format";
 
@@ -10,15 +11,9 @@ import { fieldLabel } from "@/lib/format";
 export function SubFieldInput({ field, value, onChange }: { field: FieldMeta; value: unknown; onChange: (value: unknown) => void }) {
   if (field.type === "Boolean") {
     return (
-      <label className="flex h-9 items-center gap-2 text-sm text-ink">
-        <input
-          type="checkbox"
-          checked={Boolean(value)}
-          onChange={(e) => onChange(e.target.checked)}
-          className="h-4 w-4 rounded border-hairline"
-        />
+      <Chip selected={Boolean(value)} onClick={() => onChange(!value)}>
         Yes
-      </label>
+      </Chip>
     );
   }
 

@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { useEntityList } from "@/lib/blocks/hooks";
 import type { EntityRecord } from "@/lib/blocks/collections";
 import { Select } from "@/components/ui/select";
+import { Chip } from "@/components/ui/chip";
 
 function labelFor(item: EntityRecord): string {
   return (item.Name as string) || (item.Sku as string) || (item.Code as string) || ((item.ItemId ?? item.itemId) as string);
@@ -34,23 +35,33 @@ export function ReferenceSelect({ targetSchema, isArray, value, onChange, error,
 
   if (isArray) {
     const selected = typeof value === "string" ? value.split(",").map((s) => s.trim()).filter(Boolean) : [];
+
+    function toggle(optionId: string) {
+      const next = selected.includes(optionId) ? selected.filter((v) => v !== optionId) : [...selected, optionId];
+      onChange(next.join(", "));
+    }
+
     return (
-      <select
+      <div
         id={id}
-        multiple
-        value={selected}
-        onChange={(e) => onChange(Array.from(e.target.selectedOptions, (o) => o.value).join(", "))}
+        role="group"
         className={clsx(
-          "min-h-24 w-full rounded-md border bg-canvas p-2 text-sm text-ink outline-none focus:border-2 focus:border-brand-accent",
+          "flex flex-wrap gap-2 rounded-md border bg-surface-soft p-3",
           error ? "border-brand-error" : "border-hairline"
         )}
       >
-        {options.map((o) => (
-          <option key={(o.ItemId ?? o.itemId) as string} value={(o.ItemId ?? o.itemId) as string}>
-            {labelFor(o)}
-          </option>
-        ))}
-      </select>
+        {options.length === 0 && (
+          <span className="text-sm text-muted">{list.isLoading ? "Loading…" : `No ${targetSchema.toLowerCase()}s yet.`}</span>
+        )}
+        {options.map((o) => {
+          const optionId = (o.ItemId ?? o.itemId) as string;
+          return (
+            <Chip key={optionId} selected={selected.includes(optionId)} onClick={() => toggle(optionId)}>
+              {labelFor(o)}
+            </Chip>
+          );
+        })}
+      </div>
     );
   }
 
