@@ -16,6 +16,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { TableSkeleton } from "@/components/ui/skeleton";
+import { TabList } from "@/components/ui/tabs";
 import { ResourceTable } from "@/components/resource/resource-table";
 import { ResourceForm } from "@/components/resource/resource-form";
 import { SummaryCard } from "@/components/dashboard/summary-card";
@@ -47,6 +48,7 @@ export default function WarehouseDetailPage() {
   const { warehouseId } = useParams<{ warehouseId: string }>();
   const hasId = Boolean(warehouseId);
 
+  const [activeTab, setActiveTab] = useState<"inventory" | "transfers">("inventory");
   const [pageNo, setPageNo] = useState(1);
   const [editingWarehouse, setEditingWarehouse] = useState(false);
   const [editingInventory, setEditingInventory] = useState<EntityRecord | null>(null);
@@ -296,74 +298,64 @@ export default function WarehouseDetailPage() {
       </div>
 
       <section className="admin-card overflow-hidden">
-        <div className="flex flex-col gap-3 border-b border-hairline px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-ink">Inventory at this warehouse</h2>
-            <p className="text-sm text-muted">
-              {totalInventory} record{totalInventory === 1 ? "" : "s"}
-            </p>
-          </div>
-          {newInventoryButton}
+        <div className="flex flex-col gap-3 border-b border-hairline px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <TabList
+            tabs={[
+              { key: "inventory", label: `Inventory (${totalInventory})` },
+              { key: "transfers", label: `Stock transfers (${totalTransfers})` },
+            ]}
+            active={activeTab}
+            onChange={(key) => setActiveTab(key as "inventory" | "transfers")}
+          />
+          {activeTab === "inventory" ? newInventoryButton : newTransferButton}
         </div>
 
-        {inventoryList.isLoading ? (
-          <div className="p-5">
-            <TableSkeleton />
-          </div>
-        ) : inventoryList.isError ? (
-          <div className="p-5">
-            <ErrorState
-              message={inventoryList.error instanceof Error ? inventoryList.error.message : undefined}
-              onRetry={() => inventoryList.refetch()}
-            />
-          </div>
-        ) : inventoryItems.length === 0 ? (
-          <div className="p-5">
-            <EmptyState
-              title="No inventory records yet"
-              description="Add the first product variant stocked at this warehouse."
-              action={newInventoryButton}
-            />
-          </div>
-        ) : (
-          <>
-            <ResourceTable
-              meta={inventoryMeta}
-              items={inventoryItems}
-              onEdit={setEditingInventory}
-              onDelete={setDeletingInventory}
-              referenceLabels={referenceLabels}
-              hiddenFields={["WarehouseId"]}
-            />
-            <div className="flex flex-col gap-3 border-t border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-sm text-muted">
-                Showing {(pageNo - 1) * PAGE_SIZE + 1} to {Math.min(pageNo * PAGE_SIZE, totalInventory)} of {totalInventory} entries
-              </span>
-              <div className="flex gap-2">
-                <Button variant="secondary" size="sm" disabled={pageNo <= 1} onClick={() => setPageNo((p) => Math.max(1, p - 1))}>
-                  Previous
-                </Button>
-                <Button variant="secondary" size="sm" disabled={!hasNextPage} onClick={() => setPageNo((p) => p + 1)}>
-                  Next
-                </Button>
-              </div>
+        {activeTab === "inventory" ? (
+          inventoryList.isLoading ? (
+            <div className="p-5">
+              <TableSkeleton />
             </div>
-          </>
-        )}
-      </section>
-
-      <section className="admin-card mt-5 overflow-hidden">
-        <div className="flex flex-col gap-3 border-b border-hairline px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-ink">Stock transfers involving this warehouse</h2>
-            <p className="text-sm text-muted">
-              {totalTransfers} record{totalTransfers === 1 ? "" : "s"}
-            </p>
-          </div>
-          {newTransferButton}
-        </div>
-
-        {transferList.isLoading ? (
+          ) : inventoryList.isError ? (
+            <div className="p-5">
+              <ErrorState
+                message={inventoryList.error instanceof Error ? inventoryList.error.message : undefined}
+                onRetry={() => inventoryList.refetch()}
+              />
+            </div>
+          ) : inventoryItems.length === 0 ? (
+            <div className="p-5">
+              <EmptyState
+                title="No inventory records yet"
+                description="Add the first product variant stocked at this warehouse."
+                action={newInventoryButton}
+              />
+            </div>
+          ) : (
+            <>
+              <ResourceTable
+                meta={inventoryMeta}
+                items={inventoryItems}
+                onEdit={setEditingInventory}
+                onDelete={setDeletingInventory}
+                referenceLabels={referenceLabels}
+                hiddenFields={["WarehouseId"]}
+              />
+              <div className="flex flex-col gap-3 border-t border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-sm text-muted">
+                  Showing {(pageNo - 1) * PAGE_SIZE + 1} to {Math.min(pageNo * PAGE_SIZE, totalInventory)} of {totalInventory} entries
+                </span>
+                <div className="flex gap-2">
+                  <Button variant="secondary" size="sm" disabled={pageNo <= 1} onClick={() => setPageNo((p) => Math.max(1, p - 1))}>
+                    Previous
+                  </Button>
+                  <Button variant="secondary" size="sm" disabled={!hasNextPage} onClick={() => setPageNo((p) => p + 1)}>
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </>
+          )
+        ) : transferList.isLoading ? (
           <div className="p-5">
             <TableSkeleton />
           </div>
