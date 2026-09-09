@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+/*
+ * Theme is controlled by `data-theme="light"|"dark"` on <html>, set before paint by
+ * the inline script in index.html (reads localStorage, falls back to the OS
+ * preference) and toggled at runtime by ThemeProvider — see
+ * src/components/providers/theme-provider.tsx.
+ */
+:root {
+  color-scheme: light;
+
+  --color-primary: #0a0a0a;
+  --color-on-primary: #ffffff;
+  --color-brand-accent: #2f6fed;
+  --color-brand-accent-deep: #1f57c9;
+  --color-brand-accent-soft: #cfe0ff;
+  --color-brand-warn: #c37d0d;
+  --color-brand-error: #d45656;
+  --color-brand-success: #1ba673;
+  --color-canvas: #ffffff;
+  --color-surface: #f7f7f7;
+  --color-surface-soft: #fafafa;
+  --color-hairline: #e5e5e5;
+  --color-hairline-soft: #ededed;
+  --color-ink: #0a0a0a;
+  --color-charcoal: #1c1c1e;
+  --color-slate: #3a3a3c;
+  --color-steel: #5a5a5c;
+  --color-stone: #888888;
+  --color-muted: #a8a8aa;
+  --color-on-dark: #ffffff;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-primary: #f2f2f3;
+  --color-on-primary: #0a0a0a;
+  --color-charcoal: #d4d4d6;
+
+  --color-brand-accent: #6ea1ff;
+  --color-brand-accent-deep: #8fb6ff;
+  --color-brand-accent-soft: #17284a;
+  --color-brand-warn: #e0a839;
+  --color-brand-error: #ea8a8a;
+  --color-brand-success: #2ee0ac;
+
+  --color-canvas: #0a0a0b;
+  --color-surface: #1a1a1c;
+  --color-surface-soft: #222224;
+
+  --color-hairline: #2c2c2f;
+  --color-hairline-soft: #232325;
+
+  --color-ink: #f2f2f3;
+  --color-slate: #d1d1d3;
+  --color-steel: #a9a9ad;
+  --color-stone: #6f6f74;
+  --color-muted: #86868b;
+
+  --color-on-dark: #ffffff;
+}
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-on-primary: var(--color-on-primary);
+  --color-brand-accent: var(--color-brand-accent);
+  --color-brand-accent-deep: var(--color-brand-accent-deep);
+  --color-brand-accent-soft: var(--color-brand-accent-soft);
+  --color-brand-warn: var(--color-brand-warn);
+  --color-brand-error: var(--color-brand-error);
+  --color-brand-success: var(--color-brand-success);
+  --color-canvas: var(--color-canvas);
+  --color-surface: var(--color-surface);
+  --color-surface-soft: var(--color-surface-soft);
+  --color-hairline: var(--color-hairline);
+  --color-hairline-soft: var(--color-hairline-soft);
+  --color-ink: var(--color-ink);
+  --color-charcoal: var(--color-charcoal);
+  --color-slate: var(--color-slate);
+  --color-steel: var(--color-steel);
+  --color-stone: var(--color-stone);
+  --color-muted: var(--color-muted);
+  --color-on-dark: var(--color-on-dark);
+
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: Arial, Helvetica, sans-serif;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+::selection {
+  background: var(--color-brand-accent-soft);
+  color: var(--color-primary);
+}
+
+* {
+  scrollbar-color: var(--color-muted) transparent;
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a,
+summary {
+  cursor: pointer;
+}
