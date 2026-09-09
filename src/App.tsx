@@ -10,6 +10,7 @@ import AuthCallbackPage from "@/pages/AuthCallbackPage";
 import HomePage from "@/pages/HomePage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
 import DashboardPage from "@/pages/DashboardPage";
+import WarehouseDetailPage from "@/pages/WarehouseDetailPage";
 import ResourceListPage from "@/pages/ResourceListPage";
 
 function Loading() {
@@ -69,6 +70,7 @@ export default function App() {
           <Route path="/login/callback" element={<AuthCallbackPage />} />
           <Route path="/admin" element={<ProtectedLayout />}>
             <Route index element={<DashboardPage />} />
+            <Route path="warehouse/:warehouseId" element={<WarehouseDetailPage />} />
             <Route path=":entity" element={<ResourceListPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

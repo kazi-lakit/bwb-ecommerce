@@ -4,8 +4,8 @@ import { Plus } from "lucide-react";
 import { ENTITY_ORDER } from "@/lib/blocks/schema-meta";
 import { getEntityMeta, type EntityRecord } from "@/lib/blocks/collections";
 import { useEntityList, useEntityMutations } from "@/lib/blocks/hooks";
+import { useReferenceLabels } from "@/lib/blocks/use-reference-labels";
 import { SEARCH_FIELD_BY_SCHEMA, STATUS_OPTIONS_BY_SCHEMA } from "@/lib/blocks/list-config";
-import { REFERENCE_FIELD_TARGETS } from "@/lib/blocks/reference-fields";
 import { slugFor } from "@/components/layout/nav-items";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { assignPlaceholders } from "@/lib/placeholder-images";
@@ -16,14 +16,15 @@ import { SearchInput } from "@/components/ui/search-input";
 import { Drawer } from "@/components/ui/drawer";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { PageHeader } from "@/components/ui/page-header";
-import { TableSkeleton } from "@/components/ui/skeleton";
+import { CardGridSkeleton, TableSkeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { ResourceTable } from "@/components/resource/resource-table";
 import { ProductTable } from "@/components/resource/product-table";
+import { WarehouseCardGrid } from "@/components/resource/warehouse-card";
 import { ResourceForm } from "@/components/resource/resource-form";
 import { toast } from "@/lib/toast-store";
-import { entityLabel, fieldLabel, titleCase } from "@/lib/format";
+import { fieldLabel, titleCase } from "@/lib/format";
 
 const SLUG_TO_SCHEMA: Record<string, string> = Object.fromEntries(ENTITY_ORDER.map((name) => [slugFor(name), name]));
 
@@ -60,68 +61,12 @@ export default function ResourceListPage() {
 
   const list = useEntityList(schemaName ?? "", { pageNo, pageSize: PAGE_SIZE, where });
   const mutations = useEntityMutations(schemaName ?? "");
+  const items = list.data?.items ?? [];
 
   const isProduct = schemaName === "Product";
+  const isWarehouse = schemaName === "Warehouse";
 
-  // Every reference field (WarehouseId, ProductId, VariantId, BrandId, CategoryIds,
-  // ParentId, SupplierId, …) resolves to the target record's name instead of showing a
-  // raw ItemId — in every entity's table, not just Category/Product. Fetches the full
-  // target collection (not just this page) since the referenced record may live on a
-  // different page than the one currently displayed. A fixed set of hooks — one per
-  // possible target schema — each just toggled on/off by `enabled` depending on
-  // whether the entity being viewed actually has a field pointing at that schema.
-  const neededTargets = useMemo(() => {
-    const set = new Set<string>();
-    for (const field of meta?.fields ?? []) {
-      const target = REFERENCE_FIELD_TARGETS[field.name];
-      if (target) set.add(target);
-    }
-    return set;
-  }, [meta]);
-
-  const brandsForLookup = useEntityList("Brand", { pageSize: 200 }, neededTargets.has("Brand"));
-  const categoriesForLookup = useEntityList("Category", { pageSize: 200 }, neededTargets.has("Category"));
-  const warehousesForLookup = useEntityList("Warehouse", { pageSize: 200 }, neededTargets.has("Warehouse"));
-  const productsForLookup = useEntityList("Product", { pageSize: 200 }, neededTargets.has("Product"));
-  const variantsForLookup = useEntityList("ProductVariant", { pageSize: 200 }, neededTargets.has("ProductVariant"));
-  const suppliersForLookup = useEntityList("Supplier", { pageSize: 200 }, neededTargets.has("Supplier"));
-
-  const lookupsBySchema = useMemo(() => {
-    function nameMap(records: EntityRecord[]): Record<string, string> {
-      const byId: Record<string, string> = {};
-      for (const record of records) {
-        const id = (record.ItemId ?? record.itemId) as string | undefined;
-        if (id) byId[id] = entityLabel(record);
-      }
-      return byId;
-    }
-    return {
-      Brand: nameMap(brandsForLookup.data?.items ?? []),
-      Category: nameMap(categoriesForLookup.data?.items ?? []),
-      Warehouse: nameMap(warehousesForLookup.data?.items ?? []),
-      Product: nameMap(productsForLookup.data?.items ?? []),
-      ProductVariant: nameMap(variantsForLookup.data?.items ?? []),
-      Supplier: nameMap(suppliersForLookup.data?.items ?? []),
-    } as Record<string, Record<string, string>>;
-  }, [
-    brandsForLookup.data,
-    categoriesForLookup.data,
-    warehousesForLookup.data,
-    productsForLookup.data,
-    variantsForLookup.data,
-    suppliersForLookup.data,
-  ]);
-
-  const referenceLabels = useMemo(() => {
-    const result: Record<string, Record<string, string>> = {};
-    for (const field of meta?.fields ?? []) {
-      const target = REFERENCE_FIELD_TARGETS[field.name];
-      if (target) result[field.name] = lookupsBySchema[target];
-    }
-    return result;
-  }, [meta, lookupsBySchema]);
-
-  const items = list.data?.items ?? [];
+  const { referenceLabels, lookupsBySchema } = useReferenceLabels(meta, items);
   const placeholders = useMemo(() => (isProduct ? assignPlaceholders(items, theme) : []), [isProduct, items, theme]);
 
   if (!schemaName || !meta) return <Navigate to="/" replace />;
@@ -229,7 +174,7 @@ export default function ResourceListPage() {
         </div>
 
         {list.isLoading ? (
-          <div className="p-5"><TableSkeleton columns={isProduct ? 7 : 5} /></div>
+          isWarehouse ? <CardGridSkeleton /> : <div className="p-5"><TableSkeleton columns={isProduct ? 7 : 5} /></div>
         ) : list.isError ? (
           <div className="p-5"><ErrorState message={list.error instanceof Error ? list.error.message : undefined} onRetry={() => list.refetch()} /></div>
         ) : items.length === 0 ? (
@@ -245,6 +190,8 @@ export default function ResourceListPage() {
               onEdit={setEditing}
               onDelete={setDeleting}
             />
+          ) : isWarehouse ? (
+            <WarehouseCardGrid items={items} onEdit={setEditing} onDelete={setDeleting} />
           ) : (
             <ResourceTable meta={meta} items={items} onEdit={setEditing} onDelete={setDeleting} referenceLabels={referenceLabels} />
           )}

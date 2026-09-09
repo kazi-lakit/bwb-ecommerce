@@ -1,9 +1,10 @@
-import { CheckCircle2, ExternalLink, Pencil, Trash2, XCircle } from "lucide-react";
+import { ExternalLink, Pencil, Trash2 } from "lucide-react";
 import type { EntityRecord } from "@/lib/blocks/collections";
 import { getPrimaryImage } from "@/lib/blocks/media";
 import { Thumbnail } from "@/components/ui/thumbnail";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { Badge } from "@/components/ui/badge";
+import { BooleanIndicator } from "@/components/ui/boolean-indicator";
 import { DateDisplay } from "@/components/ui/date-display";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 
@@ -14,15 +15,6 @@ export interface ProductTableProps {
   placeholders: string[];
   onEdit: (record: EntityRecord) => void;
   onDelete: (record: EntityRecord) => void;
-}
-
-function BooleanIndicator({ value, label }: { value: boolean; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1 text-xs text-steel">
-      {value ? <CheckCircle2 size={14} className="text-brand-success" /> : <XCircle size={14} className="text-muted" />}
-      {label}
-    </span>
-  );
 }
 
 /**

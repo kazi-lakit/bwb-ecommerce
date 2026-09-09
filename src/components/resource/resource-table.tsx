@@ -7,15 +7,28 @@ import { DateDisplay } from "@/components/ui/date-display";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { isComplexField } from "./field-input";
 
-function displayColumns(meta: EntityMeta) {
-  return meta.fields.filter((f) => !isComplexField(f) && !f.isArray).slice(0, 5);
+function displayColumns(meta: EntityMeta, hiddenFields: string[]) {
+  return meta.fields.filter((f) => !isComplexField(f) && !f.isArray && !hiddenFields.includes(f.name)).slice(0, 5);
 }
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function Cell({ field, value }: { field: { name: string; type: string }; value: unknown }) {
   if (value == null || value === "") return <span className="text-muted">—</span>;
   if (field.name === "Status" && typeof value === "string") return <StatusBadge status={value} />;
   if (field.type === "Boolean") return <span>{value ? "Yes" : "No"}</span>;
   if (field.type === "DateTime" && typeof value === "string") return <DateDisplay value={value} />;
+  // A raw id with nothing to resolve it against (no matching entity, e.g.
+  // InventoryReservation.CustomerId — not a reference to anything in this data model):
+  // shorten it and keep the full value one hover/tap away instead of showing 36
+  // characters of GUID as if it were meaningful text.
+  if (typeof value === "string" && UUID_PATTERN.test(value)) {
+    return (
+      <span className="font-mono text-xs text-muted" title={value}>
+        {value.slice(0, 8)}…
+      </span>
+    );
+  }
   return <span>{String(value)}</span>;
 }
 
@@ -26,10 +39,12 @@ export interface ResourceTableProps {
   onDelete: (record: EntityRecord) => void;
   /** Resolves a reference field's raw ItemId to a human label — e.g. `{ ParentId: { "<itemId>": "Apparel" } }` for Category. */
   referenceLabels?: Record<string, Record<string, string>>;
+  /** Field names to exclude from the (up to 5) displayed columns — e.g. hide WarehouseId when the table is already scoped to one warehouse. */
+  hiddenFields?: string[];
 }
 
-export function ResourceTable({ meta, items, onEdit, onDelete, referenceLabels }: ResourceTableProps) {
-  const columns = displayColumns(meta);
+export function ResourceTable({ meta, items, onEdit, onDelete, referenceLabels, hiddenFields = [] }: ResourceTableProps) {
+  const columns = displayColumns(meta, hiddenFields);
 
   return (
     <div className="overflow-x-auto">

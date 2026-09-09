@@ -12,6 +12,8 @@ import { toFormValues, toPayload, validateFormValues, type FormValues } from "./
 export interface ResourceFormProps {
   meta: EntityMeta;
   record?: EntityRecord | null;
+  /** Only used in create mode (no `record`) — seeds specific fields (e.g. `{ WarehouseId: id }` when creating inventory from within a warehouse's own page) without changing the create/edit distinction. */
+  initialValues?: Record<string, unknown>;
   submitting?: boolean;
   onSubmit: (payload: Record<string, unknown>) => void;
   onCancel: () => void;
@@ -38,8 +40,10 @@ function sectionsFor(meta: EntityMeta): { title: string; description?: string; f
   return sections;
 }
 
-export function ResourceForm({ meta, record, submitting, onSubmit, onCancel }: ResourceFormProps) {
-  const [values, setValues] = useState<FormValues>(() => toFormValues(meta, record));
+export function ResourceForm({ meta, record, initialValues, submitting, onSubmit, onCancel }: ResourceFormProps) {
+  const [values, setValues] = useState<FormValues>(() =>
+    toFormValues(meta, record ?? (initialValues as EntityRecord | undefined))
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const sections = sectionsFor(meta);
 
