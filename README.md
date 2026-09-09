@@ -20,8 +20,10 @@ Orders.
     renders outside any auth guard and lists the full catalog to anonymous visitors.
   - `/admin/*` (`src/App.tsx`, `ProtectedLayout`) is the **staff management console** —
     create/update/delete for Product, and full read+write for every other entity
-    (Brand, Category, Warehouse, inventory, suppliers, purchase orders, …). An
-    unauthenticated visitor is redirected to `/login` before any admin query fires.
+    (Brand, Category, Warehouse, inventory, suppliers, purchase orders, …). There's no
+    standalone `/login` page — an unauthenticated visitor is sent straight into the
+    hosted SSO redirect (`RedirectToLogin` in `src/App.tsx`) before any admin query
+    fires, the same `startLogin()` call the storefront's "Staff sign in" button uses.
 - **Enforcement is server-side, not just a client-side redirect:** each schema's own
   Read/Write/Edit/Delete access level on the Data Gateway is what actually decides
   whether a request succeeds — the `/admin` route guard is a convenience, not the
@@ -67,7 +69,7 @@ npm run build
 
 ```text
 src/App.tsx                        router and protected application shell
-src/pages/                         login, callback, and the generic resource list page
+src/pages/                         OIDC callback, dashboard, and the generic resource list page
 src/lib/blocks/client.ts           configured Blocks SDK client
 src/lib/blocks/auth.ts             hosted OIDC and 401 handling
 src/lib/blocks/http.ts             session-refresh + business-error wrapping

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "@/components/providers/auth-provider";
+import { startLogin } from "@/lib/blocks/auth";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
 
@@ -19,11 +20,9 @@ export function StorefrontHeader() {
             <Button size="sm">Manage products</Button>
           </Link>
         ) : (
-          <Link to="/login">
-            <Button size="sm" variant="secondary">
-              Staff sign in
-            </Button>
-          </Link>
+          <Button size="sm" variant="secondary" onClick={() => void startLogin()}>
+            Staff sign in
+          </Button>
         )}
       </div>
     </header>
