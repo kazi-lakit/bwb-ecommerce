@@ -5,6 +5,18 @@ sibling `dms-app`: React Router for navigation and the Blocks SDK/cookie-backed 
 flow in `src/lib/blocks/`. Do not add a local authentication backend or persist Blocks
 tokens in browser storage.
 
+Access-token expiry is handled by `onUnauthorized` on the SDK instance in
+`src/lib/blocks/client.ts`: on a 401, it calls `blocksClient.auth.refresh()` (IAM's
+AuthController, not the OIDC token endpoint — that one needs an explicit
+`refresh_token` we never have in JS) so the browser's HttpOnly refresh-token cookie
+does the work and IAM rotates the access-token cookie via `Set-Cookie`; the SDK then
+retries the original call once. This applies to every call made through
+`blocksClient.http.request` — IAM routes and Data Gateway GraphQL calls alike, since
+`BlocksDataClient` is built on the same http client. `src/lib/blocks/auth.ts`'s
+`withSessionRefresh` is the fallback for the one case this can't fix — the refresh
+token itself has also expired — where it dispatches `SESSION_EXPIRED_EVENT` to sign
+the user out.
+
 ## Deployment (Docker / Blocks OS)
 
 The app builds and runs in a container via the standard Blocks OS convention
