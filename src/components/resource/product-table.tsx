@@ -1,4 +1,4 @@
-import { ExternalLink, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import type { EntityRecord } from "@/lib/blocks/collections";
 import { getPrimaryImage } from "@/lib/blocks/media";
 import { Thumbnail } from "@/components/ui/thumbnail";
@@ -47,7 +47,6 @@ export function ProductTable({ items, categoryNames, brandNames, placeholders, o
             const categoryIds = Array.isArray(product.CategoryIds) ? (product.CategoryIds as string[]) : [];
             const categoryLabel = categoryIds.map((c) => categoryNames[c] ?? c).join(", ") || "—";
             const brandLabel = product.BrandId ? (brandNames[product.BrandId as string] ?? String(product.BrandId)) : "—";
-            const slug = (product.Slug as string) || id;
 
             return (
               <tr key={id} className="border-b border-hairline-soft last:border-0 hover:bg-surface-soft/70">
@@ -80,7 +79,6 @@ export function ProductTable({ items, categoryNames, brandNames, placeholders, o
                 <td className="px-4 py-2.5 text-right">
                   <DropdownMenu
                     items={[
-                      { label: "View on storefront", icon: ExternalLink, onClick: () => window.open(`/product/${slug}`, "_blank") },
                       { label: "Edit", icon: Pencil, onClick: () => onEdit(product) },
                       { label: "Delete", icon: Trash2, onClick: () => onDelete(product), danger: true },
                     ]}

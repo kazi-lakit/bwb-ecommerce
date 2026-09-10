@@ -5,6 +5,12 @@ sibling `dms-app`: React Router for navigation and the Blocks SDK/cookie-backed 
 flow in `src/lib/blocks/`. Do not add a local authentication backend or persist Blocks
 tokens in browser storage.
 
+This app is the **staff console only** — every route requires a signed-in session
+(`/` is `LoginPage`, everything else is under `/admin`, gated by `ProtectedLayout` in
+`src/App.tsx`). The public product catalog that used to live here at `/` moved out into
+its own sibling app, `ecommerce-consumer` (separate repo/deploy) — don't re-add a public
+storefront route to this app; that functionality belongs there now.
+
 Access-token expiry is handled by `onUnauthorized` on the SDK instance in
 `src/lib/blocks/client.ts`: on a 401, it calls `blocksClient.auth.refresh()` (IAM's
 AuthController, not the OIDC token endpoint — that one needs an explicit
@@ -51,14 +57,14 @@ with `node scripts/gen-schema-meta.mjs` if that source file changes. Do not hand
 
 The exported JSON's numeric access-level fields (`ReadAccessLevel` etc.) don't map to
 fixed labels documented anywhere in this repo — treat the live project config as the
-source of truth, not the export. Confirmed live: **Product reads are Public** (the
-storefront at `/`, `src/pages/HomePage.tsx`, fetches with no session); every write, and
-every read/write on the other ten entities (`Brand`, `Category`, `ProductVariant`,
-`Warehouse`, `WarehouseInventory`, `InventoryReservation`, `InventoryMovement`,
-`StockTransfer`, `Supplier`, `PurchaseOrder`), requires the authenticated session
-enforced under `/admin` (`src/App.tsx`). If you change access levels on the Data
-Gateway, update `HomePage.tsx`/`App.tsx` and the README to match — the route guards
-here don't derive from the schema automatically.
+source of truth, not the export. Product reads are configured Public on the Data
+Gateway (the separate `ecommerce-consumer` app relies on that to browse the catalog
+with no session), but this app doesn't use that — every route here, Product included,
+sits behind the authenticated session enforced by `ProtectedLayout` in `src/App.tsx`.
+Every write, and every read/write on the other ten entities (`Brand`, `Category`,
+`ProductVariant`, `Warehouse`, `WarehouseInventory`, `InventoryReservation`,
+`InventoryMovement`, `StockTransfer`, `Supplier`, `PurchaseOrder`), requires that same
+session server-side regardless of this app's own guard.
 
 `src/components/resource/` is a generic, schema-driven CRUD table/form used for all
 eleven entities under `/admin` so field lists stay in sync with the schema instead of

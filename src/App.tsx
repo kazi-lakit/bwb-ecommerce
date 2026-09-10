@@ -7,8 +7,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { Spinner } from "@/components/ui/spinner";
 import AuthCallbackPage from "@/pages/AuthCallbackPage";
-import HomePage from "@/pages/HomePage";
-import ProductDetailPage from "@/pages/ProductDetailPage";
+import LoginPage from "@/pages/LoginPage";
 import DashboardPage from "@/pages/DashboardPage";
 import WarehouseDetailPage from "@/pages/WarehouseDetailPage";
 import ResourceListPage from "@/pages/ResourceListPage";
@@ -30,15 +29,14 @@ function RedirectToLogin({ returnTo }: { returnTo: string }) {
 }
 
 /**
- * `/admin/*` is the staff management console — every entity's create/update/delete
- * goes through here, gated behind a validated IAM session (`useAuth`, backed by
- * `GET /iam/v4/iam/me` against the session cookie). An anonymous visitor is sent
- * straight into the hosted SSO flow (see RedirectToLogin above) before any admin query
- * fires. This is deliberately separate from the public storefront at "/" (see
- * HomePage.tsx): Product reads are configured Public on the Data Gateway (anyone can
- * browse the catalog with no session), but writing to Product — and reading or writing
- * every other entity here — requires authentication, enforced server-side by each
- * schema's own Write/Read access level, not just by this client-side guard.
+ * `/admin/*` is the entire app now — every entity's create/update/delete goes through
+ * here, gated behind a validated IAM session (`useAuth`, backed by `GET /iam/v4/iam/me`
+ * against the session cookie). An anonymous visitor is sent straight into the hosted
+ * SSO flow (see RedirectToLogin above) before any admin query fires. The public product
+ * catalog that used to live at "/" moved to its own app (`ecommerce-consumer`); "/" here
+ * is now just LoginPage, so this guard is the actual security boundary for this app, not
+ * just a convenience — though the server still enforces access per schema independently
+ * of it.
  */
 function ProtectedLayout() {
   const { status } = useAuth();
@@ -65,8 +63,7 @@ export default function App() {
     <Providers>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/product/:slug" element={<ProductDetailPage />} />
+          <Route path="/" element={<LoginPage />} />
           <Route path="/login/callback" element={<AuthCallbackPage />} />
           <Route path="/admin" element={<ProtectedLayout />}>
             <Route index element={<DashboardPage />} />

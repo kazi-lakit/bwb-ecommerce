@@ -14,21 +14,22 @@ Orders.
   in localStorage, sessionStorage, or a custom app cookie.
 - `AuthProvider` (`src/components/providers/auth-provider.tsx`) validates the IAM
   session cookie through Blocks (`GET /iam/v4/iam/me`).
-- **Two areas, two access levels:**
-  - `/` (`src/pages/HomePage.tsx`) is the **public storefront**. Product's
-    `ReadAccessLevel` is configured as Public on the Data Gateway, so this route
-    renders outside any auth guard and lists the full catalog to anonymous visitors.
+- **Staff console only — every route requires a session:**
+  - `/` (`src/pages/LoginPage.tsx`) is a login screen with a single "Staff sign in"
+    button; it redirects to `/admin` if you're already signed in. There's no standalone
+    `/login` route beyond this, and no public catalog here — the public product catalog
+    is a separate sibling app, `ecommerce-consumer`.
   - `/admin/*` (`src/App.tsx`, `ProtectedLayout`) is the **staff management console** —
     create/update/delete for Product, and full read+write for every other entity
-    (Brand, Category, Warehouse, inventory, suppliers, purchase orders, …). There's no
-    standalone `/login` page — an unauthenticated visitor is sent straight into the
-    hosted SSO redirect (`RedirectToLogin` in `src/App.tsx`) before any admin query
-    fires, the same `startLogin()` call the storefront's "Staff sign in" button uses.
+    (Brand, Category, Warehouse, inventory, suppliers, purchase orders, …). An
+    unauthenticated visit to any `/admin` route is sent straight into the hosted SSO
+    redirect (`RedirectToLogin` in `src/App.tsx`).
 - **Enforcement is server-side, not just a client-side redirect:** each schema's own
   Read/Write/Edit/Delete access level on the Data Gateway is what actually decides
   whether a request succeeds — the `/admin` route guard is a convenience, not the
-  security boundary. If a schema's configured access level changes, update the guard
-  and copy here to match.
+  security boundary. Product reads happen to be configured Public on the Data
+  Gateway (that's what lets `ecommerce-consumer` browse with no session), but this app
+  doesn't rely on that — every route here still sits behind `ProtectedLayout`.
 - All CRUD goes through `blocksClient.data.collection(schemaName)` (see
   `src/lib/blocks/collections.ts`), the SDK's generated-GraphQL helper — never a raw
   `fetch`/`curl` against the gateway.

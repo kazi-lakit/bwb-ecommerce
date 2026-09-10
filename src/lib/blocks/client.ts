@@ -36,11 +36,11 @@ function refreshAccessToken(): Promise<string | undefined> {
  * One cookie-backed Blocks SDK instance. No access or refresh token is copied into
  * browser storage — the browser carries the HttpOnly IAM session cookie, and the SDK
  * adds `x-blocks-key` plus `credentials: "include"` on every request. This is the same
- * pattern as dms-app's `src/lib/blocks/client.ts`. All product/inventory reads and
- * writes go through this one client; the server enforces access per schema (Product
- * reads are configured Public — see HomePage.tsx — every other read, and every write
- * including Product's, requires the signed-in session this client carries), so the
- * `/admin` UI guard (App.tsx) is a convenience, not the actual security boundary.
+ * pattern as dms-app's `src/lib/blocks/client.ts`. This app is the staff console only
+ * (the public catalog lives in the separate `ecommerce-consumer` app) — every read and
+ * write here goes through this one client and requires the signed-in session it
+ * carries, enforced server-side per schema regardless of the `/admin` UI guard
+ * (App.tsx).
  *
  * `onUnauthorized` wires in the access-token refresh flow above. It applies uniformly to
  * every call this client makes through `blocksClient.http.request` — both plain IAM

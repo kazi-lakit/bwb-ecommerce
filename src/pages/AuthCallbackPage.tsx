@@ -36,8 +36,8 @@ export default function AuthCallbackPage() {
     })();
   }, [navigate, refresh]);
 
-  // No standalone /login page to bounce a failure to — land back on the public
-  // storefront; the toast above explains what happened, and "Staff sign in" is right there.
+  // No standalone /login page to bounce a failure to — land back on LoginPage;
+  // the toast above explains what happened, and "Staff sign in" is right there.
   if (failed) return <Navigate to="/" replace />;
 
   return (

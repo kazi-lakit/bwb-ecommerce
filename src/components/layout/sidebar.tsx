@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { ChevronLeft, ExternalLink, PackageOpen, X } from "lucide-react";
+import { NavLink } from "react-router-dom";
+import { ChevronLeft, PackageOpen, X } from "lucide-react";
 import clsx from "clsx";
 import { ADMIN_NAV_ITEMS, DASHBOARD_NAV_ITEM } from "./nav-items";
 
@@ -98,17 +98,13 @@ export function Sidebar({ mobileOpen, onCloseMobile }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="border-t border-hairline px-3 py-4">
-        <Link to="/" className={clsx("flex min-h-11 items-center gap-3 rounded-md px-4 py-2.5 text-sm font-medium text-steel hover:bg-surface hover:text-ink", collapsed && "justify-center px-2")} title="View storefront">
-          <ExternalLink size={18} className="flex-none" />
-          {!collapsed && "View storefront"}
-        </Link>
-        {collapsed && (
-          <button type="button" onClick={() => setCollapsed(false)} className="mt-1 hidden min-h-11 w-full items-center justify-center rounded-md text-brand-accent hover:bg-brand-accent-soft md:flex" aria-label="Expand navigation">
+      {collapsed && (
+        <div className="border-t border-hairline px-3 py-4">
+          <button type="button" onClick={() => setCollapsed(false)} className="hidden min-h-11 w-full items-center justify-center rounded-md text-brand-accent hover:bg-brand-accent-soft md:flex" aria-label="Expand navigation">
             <ChevronLeft size={18} className="rotate-180" />
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 
