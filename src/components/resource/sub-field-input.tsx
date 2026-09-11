@@ -2,13 +2,31 @@ import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/chip";
 import type { FieldMeta } from "@/lib/blocks/schema-meta";
 import { fieldLabel } from "@/lib/format";
+import { ImageUploadField } from "./image-upload-field";
 
 /**
  * Renders one control for a field inside a complex type's shape (Address.City,
  * Media.IsPrimary, TransferItem.Quantity, …). Complex-type shapes only ever contain
  * primitive fields (verified against schema-meta.ts), so this never needs to recurse.
+ *
+ * `parentTypeName` is the containing complex type (e.g. `"Media"`) — used only to special-case
+ * `Media.Url` with a real upload control instead of a raw text input for a URL string.
  */
-export function SubFieldInput({ field, value, onChange }: { field: FieldMeta; value: unknown; onChange: (value: unknown) => void }) {
+export function SubFieldInput({
+  field,
+  value,
+  onChange,
+  parentTypeName,
+}: {
+  field: FieldMeta;
+  value: unknown;
+  onChange: (value: unknown) => void;
+  parentTypeName?: string;
+}) {
+  if (parentTypeName === "Media" && field.name === "Url") {
+    return <ImageUploadField value={(value as string) ?? ""} onChange={onChange} />;
+  }
+
   if (field.type === "Boolean") {
     return (
       <Chip selected={Boolean(value)} onClick={() => onChange(!value)}>

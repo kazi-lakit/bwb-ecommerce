@@ -69,5 +69,29 @@ session server-side regardless of this app's own guard.
 `src/components/resource/` is a generic, schema-driven CRUD table/form used for all
 eleven entities under `/admin` so field lists stay in sync with the schema instead of
 being hand-maintained per entity. Nested/complex fields (`Media`, `Attributes`,
-`Pricing`, `Dimensions`, etc.) are edited as raw JSON in the form — there is no
-per-field sub-form for those yet.
+`Pricing`, `Dimensions`, etc.) get one input per sub-field (`object-fieldset.tsx` for a
+single complex field, `repeater-field.tsx` for an array of them), not raw JSON —
+`sub-field-input.tsx` renders each control by sub-field type.
+
+**Edit/Delete actions are permission-gated, not shown identically to every signed-in user.**
+`lib/blocks/access.ts`'s `useHasRole`/`useHasPermission` read the IAM `roles`/`permissions`
+already fetched by `AuthProvider` (previously unused). `lib/blocks/list-config.ts`'s
+`NO_EDIT_SCHEMAS`/`NO_DELETE_SCHEMAS`/`ADMIN_ONLY_EDIT_SCHEMAS` mirror the real (or
+`P0_POLICY_FIXES.json`-drafted) Data Gateway policies per schema — `InventoryMovement` never
+offers Edit/Delete at all (immutable ledger), `WarehouseInventory`/`InventoryReservation`
+gate Edit on the `admin` role, and Delete is `admin`-gated everywhere else. `ResourceTable`,
+`ProductTable`, `WarehouseCardGrid`, and `WarehouseDetailPage`'s scoped views all take
+`canEdit`/`canDelete` props (default `true`, so nothing regresses if a caller doesn't pass
+them) and hide the corresponding row action via the shared `row-actions.ts` helper. This only
+checks whatever roles a token already carries — no custom IAM roles have necessarily been
+created for this project yet (that's `blocks iam roles create` work, left to the user).
+
+**`Media.Url` specifically is a real image upload, not a text field.** `sub-field-input.tsx`
+special-cases it (matching on `parentTypeName === "Media" && field.name === "Url"`) to render
+`image-upload-field.tsx` instead of a plain `Input` — picking a file calls
+`lib/blocks/storage.ts`'s `uploadProductImage()` (presign → PUT bytes → read back the served
+URL, via `blocksClient.data.files`), then writes the real URL into the same field the way
+every other sub-field control does. Uploads go in as `accessModifier: "Public"` since product
+images need to render on the unauthenticated storefront. The platform enforces no server-side
+size limit or content verification yet (`DATA_GATEWAY_STORAGE_FEATURES_AND_SECURITY.md`
+items A5/A6) — `storage.ts` has a client-side size/type check as a courtesy, not a substitute.

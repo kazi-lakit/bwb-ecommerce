@@ -7,6 +7,7 @@ import {
   Building2,
   ClipboardList,
   FolderTree,
+  Layers,
   LayoutDashboard,
   Package,
   Tag,
@@ -27,6 +28,7 @@ function pluralTitle(schemaName: string): string {
 
 const ICON_BY_SCHEMA: Record<string, ComponentType<LucideProps>> = {
   Product: Package,
+  ProductVariant: Layers,
   Category: FolderTree,
   Brand: Tag,
   Warehouse: WarehouseIcon,
@@ -40,6 +42,7 @@ const ICON_BY_SCHEMA: Record<string, ComponentType<LucideProps>> = {
 
 /** Friendlier nav labels than a bare pluralized schema name, for the sidebar/breadcrumbs. */
 const LABEL_BY_SCHEMA: Record<string, string> = {
+  ProductVariant: "Variants",
   WarehouseInventory: "Inventory",
   InventoryReservation: "Reservations",
   InventoryMovement: "Inventory Movements",
@@ -52,7 +55,7 @@ export interface NavItem {
   icon: ComponentType<LucideProps>;
 }
 
-export const ADMIN_NAV_ITEMS: NavItem[] = ENTITY_ORDER.filter((name) => name !== "ProductVariant").map((schemaName) => ({
+export const ADMIN_NAV_ITEMS: NavItem[] = ENTITY_ORDER.map((schemaName) => ({
   schemaName,
   slug: slugFor(schemaName),
   label: LABEL_BY_SCHEMA[schemaName] ?? pluralTitle(schemaName),

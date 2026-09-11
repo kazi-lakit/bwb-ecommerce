@@ -1,4 +1,3 @@
-import { Pencil, Trash2 } from "lucide-react";
 import type { EntityRecord } from "@/lib/blocks/collections";
 import { getPrimaryImage } from "@/lib/blocks/media";
 import { Thumbnail } from "@/components/ui/thumbnail";
@@ -7,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { BooleanIndicator } from "@/components/ui/boolean-indicator";
 import { DateDisplay } from "@/components/ui/date-display";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { buildRowActions } from "./row-actions";
 
 export interface ProductTableProps {
   items: EntityRecord[];
@@ -15,6 +15,8 @@ export interface ProductTableProps {
   placeholders: string[];
   onEdit: (record: EntityRecord) => void;
   onDelete: (record: EntityRecord) => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 /**
@@ -22,7 +24,16 @@ export interface ProductTableProps {
  * product rows need an image, resolved category/brand names (not raw ids), and two
  * boolean flags shown as icons (never color alone).
  */
-export function ProductTable({ items, categoryNames, brandNames, placeholders, onEdit, onDelete }: ProductTableProps) {
+export function ProductTable({
+  items,
+  categoryNames,
+  brandNames,
+  placeholders,
+  onEdit,
+  onDelete,
+  canEdit = true,
+  canDelete = true,
+}: ProductTableProps) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-max text-left text-sm">
@@ -77,12 +88,10 @@ export function ProductTable({ items, categoryNames, brandNames, placeholders, o
                   <DateDisplay value={product.LastUpdatedDate as string} />
                 </td>
                 <td className="px-4 py-2.5 text-right">
-                  <DropdownMenu
-                    items={[
-                      { label: "Edit", icon: Pencil, onClick: () => onEdit(product) },
-                      { label: "Delete", icon: Trash2, onClick: () => onDelete(product), danger: true },
-                    ]}
-                  />
+                  {(() => {
+                    const actions = buildRowActions(product, onEdit, onDelete, canEdit, canDelete);
+                    return actions.length > 0 ? <DropdownMenu items={actions} /> : null;
+                  })()}
                 </td>
               </tr>
             );

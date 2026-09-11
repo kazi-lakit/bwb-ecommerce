@@ -35,7 +35,7 @@ export function ObjectFieldset({ field, value, onChange }: { field: FieldMeta; v
       {shape.map((sub) => (
         <div key={sub.name} className="flex flex-col gap-1">
           <label className="text-xs font-medium text-steel">{fieldLabel(sub.name)}</label>
-          <SubFieldInput field={sub} value={obj[sub.name]} onChange={(v) => setSub(sub.name, v)} />
+          <SubFieldInput field={sub} value={obj[sub.name]} onChange={(v) => setSub(sub.name, v)} parentTypeName={field.type} />
         </div>
       ))}
     </div>

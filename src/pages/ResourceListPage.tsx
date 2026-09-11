@@ -1,11 +1,21 @@
 import { useMemo, useState } from "react";
 import { Navigate, useParams } from "react-router-dom";
 import { Plus } from "lucide-react";
+import type { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { ENTITY_ORDER } from "@/lib/blocks/schema-meta";
 import { getEntityMeta, type EntityRecord } from "@/lib/blocks/collections";
 import { useEntityList, useEntityMutations } from "@/lib/blocks/hooks";
 import { useReferenceLabels } from "@/lib/blocks/use-reference-labels";
-import { SEARCH_FIELD_BY_SCHEMA, STATUS_OPTIONS_BY_SCHEMA } from "@/lib/blocks/list-config";
+import {
+  ADMIN_ONLY_EDIT_SCHEMAS,
+  NO_DELETE_SCHEMAS,
+  NO_EDIT_SCHEMAS,
+  SEARCH_FIELD_BY_SCHEMA,
+  STATUS_OPTIONS_BY_SCHEMA,
+} from "@/lib/blocks/list-config";
+import { useHasRole } from "@/lib/blocks/access";
+import { useAuth } from "@/components/providers/auth-provider";
+import { LIFECYCLE_ACTIONS_BY_SCHEMA, ROW_WARNING_BY_SCHEMA } from "@/components/resource/lifecycle-actions";
 import { slugFor } from "@/components/layout/nav-items";
 import { useDebouncedValue } from "@/lib/use-debounced-value";
 import { assignPlaceholders } from "@/lib/placeholder-images";
@@ -62,12 +72,20 @@ export default function ResourceListPage() {
   const list = useEntityList(schemaName ?? "", { pageNo, pageSize: PAGE_SIZE, where });
   const mutations = useEntityMutations(schemaName ?? "");
   const items = list.data?.items ?? [];
+  const { user } = useAuth();
 
   const isProduct = schemaName === "Product";
   const isWarehouse = schemaName === "Warehouse";
 
   const { referenceLabels, lookupsBySchema } = useReferenceLabels(meta, items);
   const placeholders = useMemo(() => (isProduct ? assignPlaceholders(items, theme) : []), [isProduct, items, theme]);
+
+  // Mirrors the Data Gateway's actual (or drafted, per P0_POLICY_FIXES.json) access
+  // policies — see list-config.ts. Doesn't grant anything the backend wouldn't already
+  // allow; only hides an action the backend would 403 on anyway.
+  const isAdmin = useHasRole("admin");
+  const canEdit = !!schemaName && !NO_EDIT_SCHEMAS.has(schemaName) && (!ADMIN_ONLY_EDIT_SCHEMAS.has(schemaName) || isAdmin);
+  const canDelete = !!schemaName && !NO_DELETE_SCHEMAS.has(schemaName) && isAdmin;
 
   if (!schemaName || !meta) return <Navigate to="/" replace />;
 
@@ -131,6 +149,27 @@ export default function ResourceListPage() {
     });
   }
 
+  /** Shared by every guided lifecycle action — one mutation + toast pattern, not reimplemented per schema. */
+  function onTransition(itemId: string, payload: Record<string, unknown>, successMessage: string) {
+    mutations.update.mutate({ itemId, payload }, { onSuccess: () => toast.success(successMessage) });
+  }
+
+  /**
+   * Looked up per schema from `lifecycle-actions.ts`'s registry — see
+   * `reservation-actions.ts`/`stock-transfer-actions.ts`/`purchase-order-actions.ts` for what
+   * each schema actually offers. A schema with no registered actions/warning just gets `[]`/
+   * `null`, same as before any of this existed.
+   */
+  function extraRowActions(record: EntityRecord): DropdownMenuItem[] {
+    const actionsFn = schemaName ? LIFECYCLE_ACTIONS_BY_SCHEMA[schemaName] : undefined;
+    return actionsFn ? actionsFn(record, { isAdmin, canEdit, approverIdentity: user?.email, onTransition }) : [];
+  }
+
+  function rowWarning(record: EntityRecord): string | null {
+    const warningFn = schemaName ? ROW_WARNING_BY_SCHEMA[schemaName] : undefined;
+    return warningFn ? warningFn(record) : null;
+  }
+
   const newButton = (
     <Button onClick={() => setCreating(true)}>
       <Plus size={16} /> New {label}
@@ -189,11 +228,23 @@ export default function ResourceListPage() {
               placeholders={placeholders}
               onEdit={setEditing}
               onDelete={setDeleting}
+              canEdit={canEdit}
+              canDelete={canDelete}
             />
           ) : isWarehouse ? (
-            <WarehouseCardGrid items={items} onEdit={setEditing} onDelete={setDeleting} />
+            <WarehouseCardGrid items={items} onEdit={setEditing} onDelete={setDeleting} canEdit={canEdit} canDelete={canDelete} />
           ) : (
-            <ResourceTable meta={meta} items={items} onEdit={setEditing} onDelete={setDeleting} referenceLabels={referenceLabels} />
+            <ResourceTable
+              meta={meta}
+              items={items}
+              onEdit={setEditing}
+              onDelete={setDeleting}
+              referenceLabels={referenceLabels}
+              canEdit={canEdit}
+              canDelete={canDelete}
+              extraRowActions={extraRowActions}
+              rowWarning={rowWarning}
+            />
           )}
           <div className="flex flex-col gap-3 border-t border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-muted">

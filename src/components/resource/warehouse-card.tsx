@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
-import { Mail, MapPin, Pencil, Phone, Trash2, Warehouse as WarehouseIcon } from "lucide-react";
+import { Mail, MapPin, Phone, Warehouse as WarehouseIcon } from "lucide-react";
 import type { EntityRecord } from "@/lib/blocks/collections";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { BooleanIndicator } from "@/components/ui/boolean-indicator";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { buildRowActions } from "./row-actions";
 
 export interface Address {
   Line1?: string;
@@ -34,6 +35,8 @@ export interface WarehouseCardGridProps {
   items: EntityRecord[];
   onEdit: (record: EntityRecord) => void;
   onDelete: (record: EntityRecord) => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 /**
@@ -43,7 +46,7 @@ export interface WarehouseCardGridProps {
  * that warehouse's own detail page (WarehouseDetailPage) — its scoped inventory and
  * dashboard live there, not in a modal.
  */
-export function WarehouseCardGrid({ items, onEdit, onDelete }: WarehouseCardGridProps) {
+export function WarehouseCardGrid({ items, onEdit, onDelete, canEdit = true, canDelete = true }: WarehouseCardGridProps) {
   return (
     <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((warehouse) => {
@@ -73,12 +76,10 @@ export function WarehouseCardGrid({ items, onEdit, onDelete }: WarehouseCardGrid
                     e.stopPropagation();
                   }}
                 >
-                  <DropdownMenu
-                    items={[
-                      { label: "Edit", icon: Pencil, onClick: () => onEdit(warehouse) },
-                      { label: "Delete", icon: Trash2, onClick: () => onDelete(warehouse), danger: true },
-                    ]}
-                  />
+                  {(() => {
+                    const actions = buildRowActions(warehouse, onEdit, onDelete, canEdit, canDelete);
+                    return actions.length > 0 ? <DropdownMenu items={actions} /> : null;
+                  })()}
                 </div>
               </div>
 

@@ -1,19 +1,36 @@
-import { Pencil, Trash2 } from "lucide-react";
 import type { EntityMeta } from "@/lib/blocks/schema-meta";
 import type { EntityRecord } from "@/lib/blocks/collections";
 import { fieldLabel } from "@/lib/format";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { DateDisplay } from "@/components/ui/date-display";
-import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, type DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { isComplexField } from "./field-input";
+import { buildRowActions } from "./row-actions";
 
 function displayColumns(meta: EntityMeta, hiddenFields: string[]) {
   return meta.fields.filter((f) => !isComplexField(f) && !f.isArray && !hiddenFields.includes(f.name)).slice(0, 5);
 }
 
-function Cell({ field, value, unresolvedId }: { field: { name: string; type: string }; value: unknown; unresolvedId?: boolean }) {
+function Cell({
+  field,
+  value,
+  unresolvedId,
+  warning,
+}: {
+  field: { name: string; type: string };
+  value: unknown;
+  unresolvedId?: boolean;
+  warning?: string | null;
+}) {
   if (value == null || value === "") return <span className="text-muted">—</span>;
-  if (field.name === "Status" && typeof value === "string") return <StatusBadge status={value} />;
+  if (field.name === "Status" && typeof value === "string") {
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <StatusBadge status={value} />
+        {warning && <span className="text-xs font-medium text-brand-warn">{warning}</span>}
+      </span>
+    );
+  }
   if (field.type === "Boolean") return <span>{value ? "Yes" : "No"}</span>;
   if (field.type === "DateTime" && typeof value === "string") return <DateDisplay value={value} />;
   // An id-shaped field with nothing to resolve it against (no matching entity in this data
@@ -41,9 +58,26 @@ export interface ResourceTableProps {
   referenceLabels?: Record<string, Record<string, string>>;
   /** Field names to exclude from the (up to 5) displayed columns — e.g. hide WarehouseId when the table is already scoped to one warehouse. */
   hiddenFields?: string[];
+  canEdit?: boolean;
+  canDelete?: boolean;
+  /** Extra row actions (e.g. reservation lifecycle transitions) shown before Edit/Delete. */
+  extraRowActions?: (record: EntityRecord) => DropdownMenuItem[];
+  /** A short warning label shown next to the Status badge (e.g. "Overdue" for a lapsed reservation still marked active) — `null`/omitted for no warning. */
+  rowWarning?: (record: EntityRecord) => string | null;
 }
 
-export function ResourceTable({ meta, items, onEdit, onDelete, referenceLabels, hiddenFields = [] }: ResourceTableProps) {
+export function ResourceTable({
+  meta,
+  items,
+  onEdit,
+  onDelete,
+  referenceLabels,
+  hiddenFields = [],
+  canEdit = true,
+  canDelete = true,
+  extraRowActions,
+  rowWarning,
+}: ResourceTableProps) {
   const columns = displayColumns(meta, hiddenFields);
 
   return (
@@ -74,17 +108,15 @@ export function ResourceTable({ meta, items, onEdit, onDelete, referenceLabels, 
                   const unresolvedId = !hasLabel && /Id$/.test(c.name) && typeof raw === "string";
                   return (
                     <td key={c.name} className="whitespace-nowrap px-4 py-2.5 text-ink">
-                      <Cell field={c} value={resolved} unresolvedId={unresolvedId} />
+                      <Cell field={c} value={resolved} unresolvedId={unresolvedId} warning={c.name === "Status" ? rowWarning?.(item) : undefined} />
                     </td>
                   );
                 })}
                 <td className="px-4 py-2.5 text-right">
-                  <DropdownMenu
-                    items={[
-                      { label: "Edit", icon: Pencil, onClick: () => onEdit(item) },
-                      { label: "Delete", icon: Trash2, onClick: () => onDelete(item), danger: true },
-                    ]}
-                  />
+                  {(() => {
+                    const actions = [...(extraRowActions?.(item) ?? []), ...buildRowActions(item, onEdit, onDelete, canEdit, canDelete)];
+                    return actions.length > 0 ? <DropdownMenu items={actions} /> : null;
+                  })()}
                 </td>
               </tr>
             );

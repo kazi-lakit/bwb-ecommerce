@@ -22,6 +22,9 @@ import { ResourceForm } from "@/components/resource/resource-form";
 import { SummaryCard } from "@/components/dashboard/summary-card";
 import { formatAddress, type Address, type Contact } from "@/components/resource/warehouse-card";
 import { toast } from "@/lib/toast-store";
+import { useHasRole } from "@/lib/blocks/access";
+import { useAuth } from "@/components/providers/auth-provider";
+import { stockTransferActions, stockTransferRowWarning } from "@/components/resource/stock-transfer-actions";
 
 const PAGE_SIZE = 20;
 // Same real enum values used on the global dashboard (see DashboardPage.tsx) —
@@ -59,6 +62,11 @@ export default function WarehouseDetailPage() {
   const [editingTransfer, setEditingTransfer] = useState<EntityRecord | null>(null);
   const [creatingTransfer, setCreatingTransfer] = useState(false);
   const [deletingTransfer, setDeletingTransfer] = useState<EntityRecord | null>(null);
+
+  // WarehouseInventory's Edit is admin-only per list-config.ts/P0_POLICY_FIXES.json (its
+  // Delete already carries an "only admin can delete" policy, same as StockTransfer).
+  const isAdmin = useHasRole("admin");
+  const { user } = useAuth();
 
   const warehouseQuery = useEntityList("Warehouse", { where: { ItemId: { eq: warehouseId } }, pageSize: 1 }, hasId);
   const warehouse = warehouseQuery.data?.items[0];
@@ -225,6 +233,17 @@ export default function WarehouseDetailPage() {
     });
   }
 
+  /** Same guided lifecycle actions as the global /admin/stock-transfer list — see stock-transfer-actions.ts. */
+  function transferExtraActions(record: EntityRecord) {
+    return stockTransferActions(record, {
+      isAdmin,
+      canEdit: true,
+      approverIdentity: user?.email,
+      onTransition: (itemId, payload, successMessage) =>
+        transferMutations.update.mutate({ itemId, payload }, { onSuccess: () => toast.success(successMessage) }),
+    });
+  }
+
   const newInventoryButton = (
     <Button onClick={() => setCreatingInventory(true)}>
       <Plus size={16} /> New inventory record
@@ -339,6 +358,8 @@ export default function WarehouseDetailPage() {
                 onDelete={setDeletingInventory}
                 referenceLabels={referenceLabels}
                 hiddenFields={["WarehouseId"]}
+                canEdit={isAdmin}
+                canDelete={isAdmin}
               />
               <div className="flex flex-col gap-3 border-t border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm text-muted">
@@ -382,6 +403,9 @@ export default function WarehouseDetailPage() {
               onEdit={setEditingTransfer}
               onDelete={setDeletingTransfer}
               referenceLabels={transferReferenceLabels}
+              canDelete={isAdmin}
+              extraRowActions={transferExtraActions}
+              rowWarning={stockTransferRowWarning}
             />
             <div className="flex flex-col gap-3 border-t border-hairline px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <span className="text-sm text-muted">

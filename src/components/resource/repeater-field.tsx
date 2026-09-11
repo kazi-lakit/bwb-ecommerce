@@ -55,7 +55,12 @@ export function RepeaterField({ field, value, onChange }: { field: FieldMeta; va
             {shape.map((sub) => (
               <div key={sub.name} className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-steel">{fieldLabel(sub.name)}</label>
-                <SubFieldInput field={sub} value={row[sub.name]} onChange={(v) => setCell(index, sub.name, v)} />
+                <SubFieldInput
+                  field={sub}
+                  value={row[sub.name]}
+                  onChange={(v) => setCell(index, sub.name, v)}
+                  parentTypeName={field.type}
+                />
               </div>
             ))}
           </div>
